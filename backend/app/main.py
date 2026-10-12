@@ -16,6 +16,7 @@ from .schemas import DesignIn, CategoryIn, BusinessIn, LoginIn, ScrapeStartIn
 from .security import require_admin, verify_password, issue_token, hash_password
 from .utils import slugify
 from .scraper import collect_product
+from .storage import save_image, delete_image
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
@@ -49,8 +50,9 @@ limiter=Limiter(key_func=get_remote_address)
 app.state.limiter=limiter
 app.add_exception_handler(RateLimitExceeded,_rate_limit_exceeded_handler)
 app.add_middleware(CORSMiddleware,allow_origins=[v.strip() for v in settings.cors_origins.split(',')],allow_credentials=True,allow_methods=['*'],allow_headers=['*'])
-Path(settings.upload_dir).mkdir(parents=True,exist_ok=True)
-app.mount('/uploads',StaticFiles(directory=settings.upload_dir),name='uploads')
+if settings.storage_backend.lower() != 'r2':
+    Path(settings.upload_dir).mkdir(parents=True,exist_ok=True)
+    app.mount('/uploads',StaticFiles(directory=settings.upload_dir),name='uploads')
 
 @app.get('/health')
 async def health():
@@ -137,9 +139,9 @@ async def upload_images(item_id:str,files:list[UploadFile]=File(...),_:str=Depen
             image=Image.open(BytesIO(raw)); image.verify()
             if image.format not in {'JPEG','PNG','WEBP'}: raise ValueError()
         except Exception: raise HTTPException(400,'Only valid JPEG, PNG, and WebP images are accepted')
-        name=f'{uuid4().hex}.webp'; target=Path(settings.upload_dir)/name
-        im=Image.open(BytesIO(raw)).convert('RGB'); im.thumbnail((1800,1800)); im.save(target,'WEBP',quality=86)
-        paths.append({'id':uuid4().hex,'url':f'/uploads/{name}','alt':file.filename or 'Jewellery design'})
+        im=Image.open(BytesIO(raw)).convert('RGB'); im.thumbnail((1800,1800)); output=BytesIO(); im.save(output,'WEBP',quality=86)
+        url=await save_image(output.getvalue())
+        paths.append({'id':uuid4().hex,'url':url,'alt':file.filename or 'Jewellery design'})
     doc=await db.catalogue_items.find_one({'_id':ObjectId(item_id),'deleted_at':None})
     if not doc: raise HTTPException(404,'Design not found')
     await db.catalogue_items.update_one({'_id':ObjectId(item_id)},{'$push':{'images':{'$each':paths}},'$set':{'updated_at':datetime.now(timezone.utc)}})
@@ -152,8 +154,7 @@ async def delete_image(item_id:str,image_id:str,_:str=Depends(require_admin)):
     if not doc: raise HTTPException(404,'Design not found')
     image=next((x for x in doc.get('images',[]) if x.get('id')==image_id),None)
     if not image: raise HTTPException(404,'Image not found')
-    file_path=Path(settings.upload_dir)/Path(image['url']).name
-    file_path.unlink(missing_ok=True)
+    await delete_image(image['url'])
     remaining=[x for x in doc['images'] if x.get('id')!=image_id]
     await db.catalogue_items.update_one({'_id':doc['_id']},{'$set':{'images':remaining,'primary_image':remaining[0]['url'] if remaining else None}})
     return {'ok':True}
@@ -183,7 +184,7 @@ async def update_business(body:BusinessIn,_:str=Depends(require_admin)):
 async def run_scrape_job(job_id: ObjectId, source_url: str, image_reuse_confirmed: bool):
     await db.scraping_jobs.update_one({'_id':job_id},{'$set':{'status':'running'}})
     try:
-        result = await collect_product(source_url, settings.upload_dir, image_reuse_confirmed)
+        result = await collect_product(source_url, image_reuse_confirmed)
         stage = {
             'job_id': str(job_id), 'source_url': result['source_url'],
             'metadata': result['metadata'], 'image_references': result['image_references'],
@@ -228,7 +229,6 @@ async def delete_import(import_id:str,_:str=Depends(require_admin)):
     staged = await db.staged_imports.find_one({'_id':ObjectId(import_id)})
     if not staged: raise HTTPException(404,'Import not found')
     for image in staged.get('image_references', []):
-        if image.get('url','').startswith('/uploads/'):
-            (Path(settings.upload_dir)/Path(image['url']).name).unlink(missing_ok=True)
+        await delete_image(image.get('url',''))
     await db.staged_imports.delete_one({'_id':ObjectId(import_id)})
     return {'ok':True}

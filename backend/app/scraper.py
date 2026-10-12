@@ -2,7 +2,6 @@
 from __future__ import annotations
 import asyncio, ipaddress, json, socket
 from io import BytesIO
-from pathlib import Path
 from urllib.parse import urljoin, urlparse, urldefrag
 from urllib.robotparser import RobotFileParser
 from uuid import uuid4
@@ -10,6 +9,7 @@ from uuid import uuid4
 import httpx
 from bs4 import BeautifulSoup
 from PIL import Image, ImageOps
+from .storage import save_image
 
 USER_AGENT = 'BalajiJewelryCatalogueBot/1.0 (+contact business administrator)'
 MAX_PAGE_BYTES = 3 * 1024 * 1024
@@ -127,7 +127,7 @@ def product_data(page_url: str, html: str) -> tuple[dict, list[dict]]:
     return {'name': title[:300], 'description': description, 'metal_type': metal, 'category_suggestion': category, 'supplier_code': supplier_code, 'brand': brand}, unique
 
 
-async def collect_product(url: str, uploads_dir: str, allow_image_reuse: bool) -> dict:
+async def collect_product(url: str, allow_image_reuse: bool) -> dict:
     validate_public_url(url)
     timeout = httpx.Timeout(20, connect=8)
     async with httpx.AsyncClient(timeout=timeout) as client:
@@ -155,10 +155,10 @@ async def collect_product(url: str, uploads_dir: str, allow_image_reuse: bool) -
                         continue
                     image.thumbnail((1800, 1800))
                     image = image.convert('RGB')
-                    name = f'{uuid4().hex}.webp'
-                    Path(uploads_dir, name).parent.mkdir(parents=True, exist_ok=True)
-                    image.save(Path(uploads_dir, name), 'WEBP', quality=86, method=6)
-                    saved.append({'id': uuid4().hex, 'url': f'/uploads/{name}', 'source_url': ref['url'], 'alt': ref['alt'] or metadata['name'] or 'Supplier product image', 'width': image.width, 'height': image.height})
+                    output = BytesIO()
+                    image.save(output, 'WEBP', quality=86, method=6)
+                    image_url = await save_image(output.getvalue())
+                    saved.append({'id': uuid4().hex, 'url': image_url, 'source_url': ref['url'], 'alt': ref['alt'] or metadata['name'] or 'Supplier product image', 'width': image.width, 'height': image.height})
                 except (httpx.HTTPError, ValueError, OSError) as exc:
                     image_errors.append(str(exc)[:250])
                 await asyncio.sleep(0.5)
