@@ -4,7 +4,7 @@ from pathlib import Path
 from uuid import uuid4
 import re, shutil
 from typing import Optional
-from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Query, Request
+from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Query, Request, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -15,6 +15,7 @@ from .config import settings
 from .schemas import DesignIn, CategoryIn, BusinessIn, LoginIn, ScrapeStartIn
 from .security import require_admin, verify_password, issue_token, hash_password
 from .utils import slugify
+from .scraper import collect_product
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
@@ -179,10 +180,32 @@ async def delete_category(category_id:str,_:str=Depends(require_admin)):
 async def update_business(body:BusinessIn,_:str=Depends(require_admin)):
     await db.business_settings.update_one({'_id':'main'},{'$set':body.model_dump()},upsert=True); return await business()
 
+async def run_scrape_job(job_id: ObjectId, source_url: str, image_reuse_confirmed: bool):
+    await db.scraping_jobs.update_one({'_id':job_id},{'$set':{'status':'running'}})
+    try:
+        result = await collect_product(source_url, settings.upload_dir, image_reuse_confirmed)
+        stage = {
+            'job_id': str(job_id), 'source_url': result['source_url'],
+            'metadata': result['metadata'], 'image_references': result['image_references'],
+            'source_images': result['source_images'], 'image_errors': result['image_errors'],
+            'rights_status': result['rights_status'], 'review_status':'pending',
+            'created_at': datetime.now(timezone.utc),
+        }
+        await db.staged_imports.insert_one(stage)
+        await db.scraping_jobs.update_one({'_id':job_id},{'$set':{
+            'status':'completed','items_found':1,'items_imported':0,
+            'completed_at':datetime.now(timezone.utc),
+            'errors':result['image_errors'], 'staged_import_id':str(stage.get('_id','')),
+        }})
+    except Exception as exc:
+        await db.scraping_jobs.update_one({'_id':job_id},{'$set':{'status':'failed','errors':[str(exc)[:500]],'completed_at':datetime.now(timezone.utc)}})
+
 @app.post('/api/admin/scraping/start')
-async def start_scraping(body:ScrapeStartIn,_:str=Depends(require_admin)):
-    job={'source':body.source_url,'status':'queued','items_found':0,'items_imported':0,'errors':[],'started_at':datetime.now(timezone.utc),'completed_at':None}
-    result=await db.scraping_jobs.insert_one(job); return {'id':str(result.inserted_id),'status':'queued','message':'Job queued for manual review. Imports are never published automatically.'}
+async def start_scraping(body:ScrapeStartIn,background_tasks:BackgroundTasks,_:str=Depends(require_admin)):
+    job={'source':body.source_url,'image_reuse_confirmed':body.image_reuse_confirmed,'status':'queued','items_found':0,'items_imported':0,'errors':[],'started_at':datetime.now(timezone.utc),'completed_at':None}
+    result=await db.scraping_jobs.insert_one(job)
+    background_tasks.add_task(run_scrape_job,result.inserted_id,body.source_url,body.image_reuse_confirmed)
+    return {'id':str(result.inserted_id),'status':'queued','message':'Fetching permitted product-page details and staging the result for admin review. Nothing will be published automatically.'}
 
 @app.get('/api/admin/scraping/jobs')
 async def scraping_jobs(_:str=Depends(require_admin)):
@@ -195,11 +218,17 @@ async def imports(_:str=Depends(require_admin)):
 @app.post('/api/admin/imports/{import_id}/approve')
 async def approve_import(import_id:str,_:str=Depends(require_admin)):
     if not ObjectId.is_valid(import_id): raise HTTPException(404,'Import not found')
-    result=await db.staged_imports.update_one({'_id':ObjectId(import_id),'rights_status':'approved'},{'$set':{'review_status':'approved','reviewed_at':datetime.now(timezone.utc)}})
+    result=await db.staged_imports.update_one({'_id':ObjectId(import_id),'rights_status':{'$in':['approved','metadata_only']}},{'$set':{'review_status':'approved','rights_verified_at':datetime.now(timezone.utc),'reviewed_at':datetime.now(timezone.utc)}})
     if not result.matched_count: raise HTTPException(400,'Usage rights must be verified before approval')
     return {'ok':True}
 
 @app.delete('/api/admin/imports/{import_id}')
 async def delete_import(import_id:str,_:str=Depends(require_admin)):
-    if ObjectId.is_valid(import_id): await db.staged_imports.delete_one({'_id':ObjectId(import_id)})
+    if not ObjectId.is_valid(import_id): raise HTTPException(404,'Import not found')
+    staged = await db.staged_imports.find_one({'_id':ObjectId(import_id)})
+    if not staged: raise HTTPException(404,'Import not found')
+    for image in staged.get('image_references', []):
+        if image.get('url','').startswith('/uploads/'):
+            (Path(settings.upload_dir)/Path(image['url']).name).unlink(missing_ok=True)
+    await db.staged_imports.delete_one({'_id':ObjectId(import_id)})
     return {'ok':True}

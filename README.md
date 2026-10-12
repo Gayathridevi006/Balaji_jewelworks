@@ -24,7 +24,7 @@ The MongoDB data and uploaded images persist in Docker volumes. To initialize or
 - `/catalogue` filters and search; `/catalogue/{slug}` shareable design page
 - `/contact` contact details from the business settings API
 - `/admin` catalogue creation, image upload and soft deletion
-- `/admin/imports` source job list and queue UI
+- `/admin/imports` manufacturer/supplier product-page extraction and staged review
 - `/docs` interactive FastAPI API documentation
 
 ## API and data
@@ -36,7 +36,7 @@ Design uploads accept valid JPEG, PNG, and WebP images up to 8 MB each and store
 
 ## Imports and content rights
 
-The importer UI/API records queued jobs; it does not yet run a web crawler or populate staged previews. Automated retrieval is intentionally held until a source-specific adapter and permission evidence are reviewed. See `scraper/README.md`. The CSV helper validates supplier folder metadata and image paths: `python backend/scripts/import_csv.py path/to/designs.csv`. Supplier bulk transfer into MongoDB is not yet automated. Never publish third-party content before confirming reuse rights. Scraped records are not automatically published.
+The importer fetches one HTTPS manufacturer/supplier product page at a time, checks robots.txt, extracts page and Product JSON-LD details, estimates metal/category for review, and stages the result. If the admin confirms rights to reuse images, it downloads robots-permitted images, rejects low-resolution/oversized files, strips metadata through WebP conversion, and stores them in staging; otherwise it records source image URLs without copying. It never crawls site-wide, bypasses restrictions, or publishes automatically. Source-specific selectors may be added for supplier sites with unusual markup. The CSV helper validates supplier folder metadata and image paths: `python backend/scripts/import_csv.py path/to/designs.csv`. Supplier bulk transfer into MongoDB is not yet automated. Never publish third-party content before confirming reuse rights. Scraped records are not automatically published.
 
 ## Production deployment
 
@@ -44,4 +44,9 @@ Use a TLS reverse proxy (Caddy or Nginx) in front of the web and API containers.
 
 ## Current scope notes
 
-The frontend and API are connected and the catalogue/admin design and image flows are implemented. This first increment is a runnable foundation, not every item in the extensive brief: the admin UI currently supports login, adding designs, uploading photos, listing and soft-deleting designs; edit, per-image delete, category/business management screens, bulk ingestion, reviewable crawler output, native secure-cookie sessions, and a production reverse proxy configuration remain to be completed. The API has category/business CRUD and import-review endpoints where applicable. Set real contact details in MongoDB through the authenticated business API before launch; WhatsApp has a development placeholder. Docker uses an internal API URL for server-rendered page fetches and the public URL for browser requests.
+The frontend and API are connected and the catalogue/admin design and image flows are implemented. This first increment is a runnable foundation, not every item in the extensive brief: the admin UI currently supports login, adding designs, uploading photos, listing and soft-deleting designs; edit, per-image delete, category/business management screens, automated supplier CSV ingestion, importing approved staged results directly into the catalogue, native secure-cookie sessions, and a production reverse proxy configuration remain to be completed. The API has category/business CRUD and import-review endpoints where applicable. Set real contact details in MongoDB through the authenticated business API before launch; WhatsApp has a development placeholder. Docker uses an internal API URL for server-rendered page fetches and the public URL for browser requests.
+
+
+## Cloudflare Workers deployment
+
+The Next.js app is configured for Cloudflare Workers with the OpenNext adapter. In the connected Workers Builds project, use repository root directory `/frontend`, build command `npm run cf:build`, and deploy command `npm run cf:publish`. The Wrangler worker name is `balaji-jewelworks`. Configure `NEXT_PUBLIC_API_URL` and `API_URL` in Worker Build variables to a separately hosted FastAPI backend before expecting catalogue, admin, upload, and import APIs to work. Configure `NEXT_PUBLIC_SITE_URL` to the production Worker URL and `NEXT_PUBLIC_WHATSAPP` to the business WhatsApp number. Do not set MongoDB credentials in public `NEXT_PUBLIC_` variables. The FastAPI/MongoDB backend and durable upload storage are not deployed by this Worker configuration.

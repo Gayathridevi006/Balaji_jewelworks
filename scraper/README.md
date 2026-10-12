@@ -1,3 +1,5 @@
-# Scraping adapters
+# Manufacturer and supplier page imports
 
-A source adapter may only be added after confirming that the source allows automated access and reuse of images. Keep source-specific extraction in separate modules and preserve the original URL and rights evidence. Respect robots.txt, terms, and rate limits. Never bypass login, bot controls, or network restrictions. Stage metadata and rights state; do not publish automatically. The current API accepts only public HTTPS source URLs and creates a queued job record; it deliberately does not fetch content until a reviewed adapter exists.
+`backend/app/scraper.py` provides a generic single-product-page adapter for manufacturer/supplier sites administered by the business. It checks robots.txt for product and image URLs, rejects non-public IP destinations and non-HTTPS URLs, follows only a few revalidated redirects, limits page/image sizes, extracts Open Graph, common HTML, and Product JSON-LD fields, and stages results for admin review. Image copying is gated by the explicit image reuse confirmation in the admin UI. Copied images are quality checked, converted to WebP, and kept unpublished.
+
+The scraper does not crawl whole sites, evade access controls, or infer reuse rights. Confirm applicable supplier agreements and site terms before allowing image reuse. Add site-specific adapters only when the source permits the requested access and extraction.

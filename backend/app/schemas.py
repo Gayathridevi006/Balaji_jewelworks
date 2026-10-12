@@ -37,18 +37,10 @@ class LoginIn(BaseModel):
 
 class ScrapeStartIn(BaseModel):
     source_url: str
+    image_reuse_confirmed: bool = False
+
     @field_validator('source_url')
     @classmethod
     def safe_url(cls, value):
-        from urllib.parse import urlparse
-        parsed = urlparse(value)
-        import ipaddress, socket
-        if parsed.scheme != 'https' or not parsed.hostname:
-            raise ValueError('Only public HTTPS URLs are supported')
-        try:
-            addresses = socket.getaddrinfo(parsed.hostname, None)
-            if any(not ipaddress.ip_address(item[4][0]).is_global for item in addresses):
-                raise ValueError('Private or local network URLs are not allowed')
-        except socket.gaierror:
-            raise ValueError('Unable to resolve source host')
-        return value
+        from .scraper import validate_public_url
+        return validate_public_url(value)
