@@ -1,11 +1,59 @@
+# Local secrets and environment-specific settings. Keep checked-in examples.
 .env
+.env.*
 **/.env
-node_modules/
-.next/
+**/.env.*
+!.env.example
+!.env.sample
+!.env.template
+!**/.env.example
+!**/.env.sample
+!**/.env.template
+
+# Dependencies, build output, and caches
+**/node_modules/
+**/.next/
+**/.open-next/
+**/.wrangler/
+**/dist/
+**/build/
+**/coverage/
+**/htmlcov/
 __pycache__/
 *.py[cod]
-.DS_Store
-uploads/
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+.coverage
+**/.venv/
+**/venv/
 
-.open-next/
-.wrangler/
+# Local data, uploads, logs, and temporary files
+uploads/
+backend/uploads/
+*.sqlite
+*.sqlite3
+*.db
+*.log
+**/logs/
+**/tmp/
+**/temp/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+**/.idea/
+**/.vscode/
+
+# Private keys, certificates, and credentials
+*.pem
+*.p12
+*.pfx
+*.key
+credentials.json
+service-account*.json
+
+# Terraform local state
+**/.terraform/
+terraform.tfstate
+terraform.tfstate.*
