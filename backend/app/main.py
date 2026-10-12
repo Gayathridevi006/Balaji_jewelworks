@@ -1,0 +1,205 @@
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+from pathlib import Path
+from uuid import uuid4
+import re, shutil
+from typing import Optional
+from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Query, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from motor.motor_asyncio import AsyncIOMotorClient
+from bson import ObjectId
+from PIL import Image
+from io import BytesIO
+from .config import settings
+from .schemas import DesignIn, CategoryIn, BusinessIn, LoginIn, ScrapeStartIn
+from .security import require_admin, verify_password, issue_token, hash_password
+from .utils import slugify
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+
+client = AsyncIOMotorClient(settings.mongo_uri)
+db = client[settings.mongo_db]
+
+def public(doc):
+    if not doc: return doc
+    doc['id'] = str(doc.pop('_id'))
+    return doc
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await db.catalogue_items.create_index('design_code', unique=True)
+    await db.catalogue_items.create_index('slug', unique=True)
+    await db.catalogue_items.create_index([('published',1),('metal_type',1),('category_id',1),('created_at',-1)])
+    await db.categories.create_index([('display_order',1)])
+    if await db.categories.count_documents({}) == 0:
+        names=['Earrings','Rings','Necklaces','Chains','Bangles','Bracelets','Pendants','Anklets','Nose Pins','Jhumkas','Haram','Mangalsutra','Traditional Jewellery','Bridal Jewellery','Kids Jewellery','Custom Designs']
+        await db.categories.insert_many([{'name':n,'slug':slugify(n),'metal_type':'Both','display_order':i,'active':True} for i,n in enumerate(names)])
+    await db.staged_imports.create_index([('review_status',1),('created_at',-1)])
+    if settings.bootstrap_admin_email and settings.bootstrap_admin_password:
+        await db.admin_users.update_one({'email':settings.bootstrap_admin_email.lower()},{'$setOnInsert':{'email':settings.bootstrap_admin_email.lower(),'password_hash':hash_password(settings.bootstrap_admin_password),'role':'admin','created_at':datetime.now(timezone.utc)}},upsert=True)
+    Path(settings.upload_dir).mkdir(parents=True,exist_ok=True)
+    yield
+    client.close()
+
+app=FastAPI(title='Balaji Jewelry Works API',version='1.0.0',lifespan=lifespan)
+limiter=Limiter(key_func=get_remote_address)
+app.state.limiter=limiter
+app.add_exception_handler(RateLimitExceeded,_rate_limit_exceeded_handler)
+app.add_middleware(CORSMiddleware,allow_origins=[v.strip() for v in settings.cors_origins.split(',')],allow_credentials=True,allow_methods=['*'],allow_headers=['*'])
+Path(settings.upload_dir).mkdir(parents=True,exist_ok=True)
+app.mount('/uploads',StaticFiles(directory=settings.upload_dir),name='uploads')
+
+@app.get('/health')
+async def health():
+    await db.command('ping'); return {'status':'ok'}
+
+@app.get('/api/catalogue')
+async def catalogue(metal_type:Optional[str]=None,category_id:Optional[str]=None,style:Optional[str]=None,search:Optional[str]=None,featured:Optional[bool]=None,page:int=Query(1,ge=1),limit:int=Query(24,ge=1,le=60)):
+    query={'published':True,'deleted_at':None}
+    if metal_type in ('Gold','Silver'): query['metal_type']=metal_type
+    if category_id: query['category_id']=category_id
+    if style: query['style']=style
+    if featured is not None: query['featured']=featured
+    if search: query['$or']=[{'name':{'$regex':re.escape(search),'$options':'i'}},{'design_code':{'$regex':re.escape(search),'$options':'i'}}]
+    total=await db.catalogue_items.count_documents(query)
+    cursor=db.catalogue_items.find(query).sort('created_at',-1).skip((page-1)*limit).limit(limit)
+    rows=[public(x) async for x in cursor]
+    return {'items':rows,'total':total,'page':page,'pages':(total+limit-1)//limit}
+
+@app.get('/api/catalogue/featured')
+async def featured():
+    return [public(x) async for x in db.catalogue_items.find({'published':True,'featured':True,'deleted_at':None}).sort('created_at',-1).limit(8)]
+
+@app.get('/api/catalogue/{slug}')
+async def catalogue_item(slug:str):
+    item=await db.catalogue_items.find_one({'slug':slug,'published':True,'deleted_at':None})
+    if not item: raise HTTPException(404,'Design not found')
+    return public(item)
+
+@app.get('/api/categories')
+async def categories():
+    return [public(c) async for c in db.categories.find({'active':True}).sort('display_order',1)]
+
+@app.get('/api/business')
+async def business():
+    doc = await db.business_settings.find_one({'_id':'main'}) or {'shop_name':'Balaji Jewelry Works','about':'Handcrafted jewellery designs, made to your preference.'}
+    doc.pop('_id', None)
+    return doc
+
+@app.post('/api/admin/login')
+@limiter.limit('5/minute')
+async def login(request:Request,body:LoginIn):
+    user=await db.admin_users.find_one({'email':body.email.lower()})
+    if not user or not verify_password(body.password,user['password_hash']): raise HTTPException(401,'Email or password is incorrect')
+    return {'access_token':issue_token(user['email']),'token_type':'bearer'}
+
+@app.get('/api/admin/overview')
+async def overview(_:str=Depends(require_admin)):
+    match={'deleted_at':None}
+    return {'total_designs':await db.catalogue_items.count_documents(match),'gold_designs':await db.catalogue_items.count_documents({**match,'metal_type':'Gold'}),'silver_designs':await db.catalogue_items.count_documents({**match,'metal_type':'Silver'}),'categories':await db.categories.count_documents({'active':True}),'total_images':await db.catalogue_items.aggregate([{'$match':match},{'$project':{'n':{'$size':{'$ifNull':['$images',[]]}}}},{'$group':{'_id':None,'n':{'$sum':'$n'}}}]).to_list(1),'imports':await db.scraping_jobs.count_documents({})}
+
+@app.get('/api/admin/catalogue')
+async def admin_catalogue(_:str=Depends(require_admin)):
+    return [public(x) async for x in db.catalogue_items.find({'deleted_at':None}).sort('created_at',-1)]
+
+@app.post('/api/admin/catalogue')
+async def create_design(body:DesignIn,_:str=Depends(require_admin)):
+    now=datetime.now(timezone.utc); data=body.model_dump(); data.update({'slug':slugify(data['metal_type']+'-'+data['name']+'-'+data['design_code']),'images':[],'primary_image':None,'source_url':None,'created_at':now,'updated_at':now,'deleted_at':None})
+    try: result=await db.catalogue_items.insert_one(data)
+    except Exception as exc: raise HTTPException(409,'Design code or URL already exists') from exc
+    return public(await db.catalogue_items.find_one({'_id':result.inserted_id}))
+
+@app.put('/api/admin/catalogue/{item_id}')
+async def update_design(item_id:str,body:DesignIn,_:str=Depends(require_admin)):
+    if not ObjectId.is_valid(item_id): raise HTTPException(404,'Design not found')
+    data=body.model_dump(); data.update({'slug':slugify(data['metal_type']+'-'+data['name']+'-'+data['design_code']),'updated_at':datetime.now(timezone.utc)})
+    try: result=await db.catalogue_items.update_one({'_id':ObjectId(item_id),'deleted_at':None},{'$set':data})
+    except Exception as exc: raise HTTPException(409,'Design code or URL already exists') from exc
+    if not result.matched_count: raise HTTPException(404,'Design not found')
+    return public(await db.catalogue_items.find_one({'_id':ObjectId(item_id)}))
+
+@app.delete('/api/admin/catalogue/{item_id}')
+async def delete_design(item_id:str,_:str=Depends(require_admin)):
+    if not ObjectId.is_valid(item_id): raise HTTPException(404,'Design not found')
+    await db.catalogue_items.update_one({'_id':ObjectId(item_id)},{'$set':{'deleted_at':datetime.now(timezone.utc),'published':False}}); return {'ok':True}
+
+@app.post('/api/admin/catalogue/{item_id}/images')
+async def upload_images(item_id:str,files:list[UploadFile]=File(...),_:str=Depends(require_admin)):
+    if not ObjectId.is_valid(item_id): raise HTTPException(404,'Design not found')
+    paths=[]
+    for file in files:
+        raw=await file.read(settings.max_upload_mb*1024*1024+1)
+        if len(raw)>settings.max_upload_mb*1024*1024: raise HTTPException(413,'Image exceeds the 8 MB limit')
+        try:
+            image=Image.open(BytesIO(raw)); image.verify()
+            if image.format not in {'JPEG','PNG','WEBP'}: raise ValueError()
+        except Exception: raise HTTPException(400,'Only valid JPEG, PNG, and WebP images are accepted')
+        name=f'{uuid4().hex}.webp'; target=Path(settings.upload_dir)/name
+        im=Image.open(BytesIO(raw)).convert('RGB'); im.thumbnail((1800,1800)); im.save(target,'WEBP',quality=86)
+        paths.append({'id':uuid4().hex,'url':f'/uploads/{name}','alt':file.filename or 'Jewellery design'})
+    doc=await db.catalogue_items.find_one({'_id':ObjectId(item_id),'deleted_at':None})
+    if not doc: raise HTTPException(404,'Design not found')
+    await db.catalogue_items.update_one({'_id':ObjectId(item_id)},{'$push':{'images':{'$each':paths}},'$set':{'updated_at':datetime.now(timezone.utc)}})
+    if not doc.get('primary_image') and paths: await db.catalogue_items.update_one({'_id':ObjectId(item_id)},{'$set':{'primary_image':paths[0]['url']}})
+    return paths
+
+@app.delete('/api/admin/catalogue/{item_id}/images/{image_id}')
+async def delete_image(item_id:str,image_id:str,_:str=Depends(require_admin)):
+    doc=await db.catalogue_items.find_one({'_id':ObjectId(item_id)}) if ObjectId.is_valid(item_id) else None
+    if not doc: raise HTTPException(404,'Design not found')
+    image=next((x for x in doc.get('images',[]) if x.get('id')==image_id),None)
+    if not image: raise HTTPException(404,'Image not found')
+    file_path=Path(settings.upload_dir)/Path(image['url']).name
+    file_path.unlink(missing_ok=True)
+    remaining=[x for x in doc['images'] if x.get('id')!=image_id]
+    await db.catalogue_items.update_one({'_id':doc['_id']},{'$set':{'images':remaining,'primary_image':remaining[0]['url'] if remaining else None}})
+    return {'ok':True}
+
+@app.post('/api/admin/categories')
+async def create_category(body:CategoryIn,_:str=Depends(require_admin)):
+    data=body.model_dump(); data['slug']=slugify(data['name'])
+    result=await db.categories.insert_one(data); return public(await db.categories.find_one({'_id':result.inserted_id}))
+
+@app.put('/api/admin/categories/{category_id}')
+async def update_category(category_id:str,body:CategoryIn,_:str=Depends(require_admin)):
+    if not ObjectId.is_valid(category_id): raise HTTPException(404,'Category not found')
+    data=body.model_dump(); data['slug']=slugify(data['name'])
+    result=await db.categories.update_one({'_id':ObjectId(category_id)},{'$set':data})
+    if not result.matched_count: raise HTTPException(404,'Category not found')
+    return public(await db.categories.find_one({'_id':ObjectId(category_id)}))
+
+@app.delete('/api/admin/categories/{category_id}')
+async def delete_category(category_id:str,_:str=Depends(require_admin)):
+    if not ObjectId.is_valid(category_id): raise HTTPException(404,'Category not found')
+    await db.categories.update_one({'_id':ObjectId(category_id)},{'$set':{'active':False}}); return {'ok':True}
+
+@app.put('/api/admin/business')
+async def update_business(body:BusinessIn,_:str=Depends(require_admin)):
+    await db.business_settings.update_one({'_id':'main'},{'$set':body.model_dump()},upsert=True); return await business()
+
+@app.post('/api/admin/scraping/start')
+async def start_scraping(body:ScrapeStartIn,_:str=Depends(require_admin)):
+    job={'source':body.source_url,'status':'queued','items_found':0,'items_imported':0,'errors':[],'started_at':datetime.now(timezone.utc),'completed_at':None}
+    result=await db.scraping_jobs.insert_one(job); return {'id':str(result.inserted_id),'status':'queued','message':'Job queued for manual review. Imports are never published automatically.'}
+
+@app.get('/api/admin/scraping/jobs')
+async def scraping_jobs(_:str=Depends(require_admin)):
+    return [public(x) async for x in db.scraping_jobs.find().sort('started_at',-1).limit(100)]
+
+@app.get('/api/admin/imports')
+async def imports(_:str=Depends(require_admin)):
+    return [public(x) async for x in db.staged_imports.find().sort('created_at',-1).limit(200)]
+
+@app.post('/api/admin/imports/{import_id}/approve')
+async def approve_import(import_id:str,_:str=Depends(require_admin)):
+    if not ObjectId.is_valid(import_id): raise HTTPException(404,'Import not found')
+    result=await db.staged_imports.update_one({'_id':ObjectId(import_id),'rights_status':'approved'},{'$set':{'review_status':'approved','reviewed_at':datetime.now(timezone.utc)}})
+    if not result.matched_count: raise HTTPException(400,'Usage rights must be verified before approval')
+    return {'ok':True}
+
+@app.delete('/api/admin/imports/{import_id}')
+async def delete_import(import_id:str,_:str=Depends(require_admin)):
+    if ObjectId.is_valid(import_id): await db.staged_imports.delete_one({'_id':ObjectId(import_id)})
+    return {'ok':True}

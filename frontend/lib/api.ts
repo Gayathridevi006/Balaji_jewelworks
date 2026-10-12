@@ -1,0 +1,4 @@
+const base=typeof window==='undefined'?(process.env.API_URL||process.env.NEXT_PUBLIC_API_URL||'http://localhost:8000/api'):(process.env.NEXT_PUBLIC_API_URL||'http://localhost:8000/api');
+export async function api<T>(path:string,init?:RequestInit):Promise<T>{const res=await fetch(`${base}${path}`,{...init,headers:{'Content-Type':'application/json',...(init?.headers||{})},cache:'no-store'});if(!res.ok)throw new Error((await res.text())||'Request failed');return res.json()}
+export function imageUrl(path?:string){if(!path)return '/placeholder.svg';if(path.startsWith('http'))return path;return `${(process.env.NEXT_PUBLIC_API_URL||'http://localhost:8000/api').replace(/\/api$/,'')}${path}`}
+export function whatsappLink(message:string){return `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP||'919876543210'}?text=${encodeURIComponent(message)}`}
