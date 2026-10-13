@@ -61,6 +61,8 @@ WORKSHOP_PHOTO_SAMPLES = [
     ('BJW-G-REF-110', 'Lotus Pearl Drop Earrings', 'Earrings', 'Traditional', 'bjw-user-gold-lotus-drop-earrings.webp'),
     ('BJW-G-REF-111', 'Pearl Lattice Earrings', 'Earrings', 'Classic', 'bjw-user-gold-pearl-lattice-earrings.webp'),
     ('BJW-G-REF-112', 'Heritage Bell Jhumkas', 'Jhumkas', 'Traditional', 'bjw-user-gold-heritage-jhumkas.webp'),
+    ('BJW-G-REF-115', 'Filigree Bead Drop Jhumkas', 'Jhumkas', 'Traditional', 'bjw-user-gold-filigree-bead-jhumkas.webp'),
+    ('BJW-G-REF-116', 'Engraved Dome Jhumkas', 'Jhumkas', 'Traditional', 'bjw-user-gold-engraved-dome-jhumkas.webp'),
     ('BJW-G-REF-113', 'Textured Rope Chain', 'Chains', 'Classic', 'bjw-user-gold-rope-chain.webp'),
     ('BJW-G-REF-114', 'Medallion Panel Cuff', 'Bracelets', 'Contemporary', 'bjw-user-gold-medallion-cuff.webp'),
 ]
