@@ -117,14 +117,47 @@ const sampleWeights: Record<string, { Gold: string; Silver: string }> = {
   Other: { Gold: 'Approx. 5–10 g', Silver: 'Approx. 8–15 g' },
 };
 
-const sampleImageFor = (metal: 'Gold' | 'Silver', category: string) => {
-  if (metal === 'Silver') return '/products/bjw-s-001-silver-drops.webp';
-  if (['Necklaces', 'Chains', 'Harams', 'Mangalsutra', 'Bridal Jewellery'].includes(category)) {
-    return '/products/bjw-g-001-temple-necklace.webp';
-  }
-  if (['Earrings', 'Jhumkas'].includes(category)) return '/products/bjw-g-002-pearl-jhumkas.webp';
-  return '/products/bjw-g-003-enamel-bangles.webp';
+const sampleImages: Record<'Gold' | 'Silver', Record<string, string>> = {
+  Gold: {
+    Bangles: '/products/bjw-g-003-enamel-bangles.webp',
+    Chains: '/products/bjw-gold-chains.webp',
+    Necklaces: '/products/bjw-g-001-temple-necklace.webp',
+    Earrings: '/products/bjw-gold-earrings.webp',
+    Bracelets: '/products/bjw-gold-bracelets.webp',
+    'Finger Rings': '/products/bjw-gold-finger-rings.webp',
+    Pendants: '/products/bjw-gold-pendants.webp',
+    Anklets: '/products/bjw-gold-anklets.webp',
+    'Nose Pins': '/products/bjw-gold-nose-pins.webp',
+    'Toe Rings': '/products/bjw-gold-toe-rings.webp',
+    Jhumkas: '/products/bjw-g-002-pearl-jhumkas.webp',
+    Harams: '/products/bjw-gold-harams.webp',
+    Mangalsutra: '/products/bjw-gold-mangalsutra.webp',
+    'Bridal Jewellery': '/products/bjw-gold-bridal-jewellery.webp',
+    'Kids Jewellery': '/products/bjw-gold-kids-jewellery.webp',
+    Other: '/products/bjw-gold-other.webp',
+  },
+  Silver: {
+    Bangles: '/products/bjw-silver-bangles.webp',
+    Chains: '/products/bjw-silver-chains.webp',
+    Necklaces: '/products/bjw-silver-necklaces.webp',
+    Earrings: '/products/bjw-s-001-silver-drops.webp',
+    Bracelets: '/products/bjw-silver-bracelets.webp',
+    'Finger Rings': '/products/bjw-silver-finger-rings.webp',
+    Pendants: '/products/bjw-silver-pendants.webp',
+    Anklets: '/products/bjw-silver-anklets.webp',
+    'Nose Pins': '/products/bjw-silver-nose-pins.webp',
+    'Toe Rings': '/products/bjw-silver-toe-rings.webp',
+    Jhumkas: '/products/bjw-silver-jhumkas.webp',
+    Harams: '/products/bjw-silver-harams.webp',
+    Mangalsutra: '/products/bjw-silver-mangalsutra.webp',
+    'Bridal Jewellery': '/products/bjw-silver-bridal-jewellery.webp',
+    'Kids Jewellery': '/products/bjw-silver-kids-jewellery.webp',
+    Other: '/products/bjw-silver-other.webp',
+  },
 };
+
+const sampleImageFor = (metal: 'Gold' | 'Silver', category: string) =>
+  sampleImages[metal][category] ?? '/products/bjw-g-001-temple-necklace.webp';
 
 const extraSampleDesigns: CatalogueDesign[] = (['Gold', 'Silver'] as const).flatMap((metal) =>
   standardCategoryNames

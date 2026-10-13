@@ -25,6 +25,29 @@ from slowapi.util import get_remote_address
 client = AsyncIOMotorClient(settings.mongo_uri)
 db = client[settings.mongo_db]
 
+SAMPLE_IMAGE_FILES = {
+    'Gold': {
+        'Bangles': 'bjw-g-003-enamel-bangles.webp', 'Chains': 'bjw-gold-chains.webp',
+        'Necklaces': 'bjw-g-001-temple-necklace.webp', 'Earrings': 'bjw-gold-earrings.webp',
+        'Bracelets': 'bjw-gold-bracelets.webp', 'Finger Rings': 'bjw-gold-finger-rings.webp',
+        'Pendants': 'bjw-gold-pendants.webp', 'Anklets': 'bjw-gold-anklets.webp',
+        'Nose Pins': 'bjw-gold-nose-pins.webp', 'Toe Rings': 'bjw-gold-toe-rings.webp',
+        'Jhumkas': 'bjw-g-002-pearl-jhumkas.webp', 'Harams': 'bjw-gold-harams.webp',
+        'Mangalsutra': 'bjw-gold-mangalsutra.webp', 'Bridal Jewellery': 'bjw-gold-bridal-jewellery.webp',
+        'Kids Jewellery': 'bjw-gold-kids-jewellery.webp', 'Other': 'bjw-gold-other.webp',
+    },
+    'Silver': {
+        'Bangles': 'bjw-silver-bangles.webp', 'Chains': 'bjw-silver-chains.webp',
+        'Necklaces': 'bjw-silver-necklaces.webp', 'Earrings': 'bjw-s-001-silver-drops.webp',
+        'Bracelets': 'bjw-silver-bracelets.webp', 'Finger Rings': 'bjw-silver-finger-rings.webp',
+        'Pendants': 'bjw-silver-pendants.webp', 'Anklets': 'bjw-silver-anklets.webp',
+        'Nose Pins': 'bjw-silver-nose-pins.webp', 'Toe Rings': 'bjw-silver-toe-rings.webp',
+        'Jhumkas': 'bjw-silver-jhumkas.webp', 'Harams': 'bjw-silver-harams.webp',
+        'Mangalsutra': 'bjw-silver-mangalsutra.webp', 'Bridal Jewellery': 'bjw-silver-bridal-jewellery.webp',
+        'Kids Jewellery': 'bjw-silver-kids-jewellery.webp', 'Other': 'bjw-silver-other.webp',
+    },
+}
+
 def public(doc):
     if not doc: return doc
     doc['id'] = str(doc.pop('_id'))
@@ -59,22 +82,26 @@ async def lifespan(app: FastAPI):
     for metal in ('Gold', 'Silver'):
         for order, name in enumerate(STANDARD_CATEGORY_NAMES):
             category = await db.categories.find_one({'name': name, 'metal_type': metal, 'active': True})
-            if not category or await db.catalogue_items.find_one({
+            if not category:
+                continue
+            image_url = image_base + SAMPLE_IMAGE_FILES[metal][name]
+            # Refresh only starter samples. Administrator-uploaded catalogue images stay untouched.
+            await db.catalogue_items.update_many(
+                {'category_id': str(category['_id']), 'metal_type': metal, 'sample': True, 'deleted_at': None},
+                {'$set': {
+                    'primary_image': image_url,
+                    'images.0.url': image_url,
+                    'images.0.alt': f'{metal} {name} illustrative sample',
+                    'updated_at': datetime.now(timezone.utc),
+                }},
+            )
+            if await db.catalogue_items.find_one({
                 'category_id': str(category['_id']), 'metal_type': metal, 'deleted_at': None,
             }):
                 continue
             code = f"BJW-{'G' if metal == 'Gold' else 'S'}-CAT-{order + 1:03d}"
             if await db.catalogue_items.find_one({'design_code': code}):
                 continue
-            if metal == 'Silver':
-                image_file = 'bjw-s-001-silver-drops.webp'
-            elif name in ('Necklaces', 'Chains', 'Harams', 'Mangalsutra', 'Bridal Jewellery'):
-                image_file = 'bjw-g-001-temple-necklace.webp'
-            elif name in ('Earrings', 'Jhumkas'):
-                image_file = 'bjw-g-002-pearl-jhumkas.webp'
-            else:
-                image_file = 'bjw-g-003-enamel-bangles.webp'
-            image_url = image_base + image_file
             item_name = 'Heritage Pearl Jhumkas' if metal == 'Gold' and name == 'Jhumkas' else f'{metal} {name} Sample'
             await db.catalogue_items.insert_one({
                 'name': item_name,
