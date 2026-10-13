@@ -18,10 +18,10 @@ type Item = {
 
 async function getItems(): Promise<Item[]> {
   try {
-    const response = await api<{ items: Item[] }>('/catalogue?limit=12');
-    return response.items.length ? response.items.slice(0, 12) : sampleDesigns.slice(0, 12);
+    const response = await api<{ items: Item[] }>('/catalogue?limit=8');
+    return response.items.length ? response.items.slice(0, 8) : sampleDesigns.slice(0, 8);
   } catch {
-    return sampleDesigns.slice(0, 12);
+    return sampleDesigns.slice(0, 8);
   }
 }
 
@@ -77,7 +77,7 @@ export default async function Home() {
           <div>
             <div className="eyebrow">Selected for you</div>
             <h2 className="serif" style={{ fontWeight: 400, fontSize: 38, margin: '12px 0 0' }}>Latest designs</h2>
-            <p style={{ fontSize: 12, color: '#746d63', margin: '8px 0 0' }}>A preview of 12 designs · weights are estimates</p>
+            <p style={{ fontSize: 12, color: '#746d63', margin: '8px 0 0' }}>8 most recently added designs · weights are estimates</p>
           </div>
           <Link href="/catalogue" style={{ fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>View all <MoveRight size={15} style={{ verticalAlign: 'middle' }} /></Link>
         </div>
