@@ -48,6 +48,23 @@ SAMPLE_IMAGE_FILES = {
     },
 }
 
+WORKSHOP_PHOTO_SAMPLES = [
+    ('BJW-G-REF-101', 'Layered Ribbed Cuffs', 'Bangles', 'Classic', 'bjw-user-gold-ribbed-cuffs.webp'),
+    ('BJW-G-REF-102', 'Colourstone Blossom Studs', 'Earrings', 'Traditional', 'bjw-user-gold-colourstone-studs.webp'),
+    ('BJW-G-REF-103', 'Triple Petal Studs', 'Earrings', 'Contemporary', 'bjw-user-gold-triple-petal-studs.webp'),
+    ('BJW-G-REF-104', 'Temple Motif Hoop Bangles', 'Bangles', 'Traditional', 'bjw-user-gold-temple-hoop-bangles.webp'),
+    ('BJW-G-REF-105', 'Ruby Mosaic Studs', 'Earrings', 'Traditional', 'bjw-user-gold-ruby-mosaic-studs.webp'),
+    ('BJW-G-REF-106', 'Filigree Cascade Jhumkas', 'Jhumkas', 'Traditional', 'bjw-user-gold-filigree-jhumkas.webp'),
+    ('BJW-G-REF-107', 'Sunburst Flower Studs', 'Earrings', 'Classic', 'bjw-user-gold-sunburst-studs.webp'),
+    ('BJW-G-REF-108', 'Emerald Temple Jhumkas', 'Jhumkas', 'Traditional', 'bjw-user-gold-emerald-jhumkas.webp'),
+    ('BJW-G-REF-109', 'Everyday Pendant Necklace', 'Necklaces', 'Classic', 'bjw-user-gold-pendant-necklace.webp'),
+    ('BJW-G-REF-110', 'Lotus Pearl Drop Earrings', 'Earrings', 'Traditional', 'bjw-user-gold-lotus-drop-earrings.webp'),
+    ('BJW-G-REF-111', 'Pearl Lattice Earrings', 'Earrings', 'Classic', 'bjw-user-gold-pearl-lattice-earrings.webp'),
+    ('BJW-G-REF-112', 'Heritage Bell Jhumkas', 'Jhumkas', 'Traditional', 'bjw-user-gold-heritage-jhumkas.webp'),
+    ('BJW-G-REF-113', 'Textured Rope Chain', 'Chains', 'Classic', 'bjw-user-gold-rope-chain.webp'),
+    ('BJW-G-REF-114', 'Medallion Panel Cuff', 'Bracelets', 'Contemporary', 'bjw-user-gold-medallion-cuff.webp'),
+]
+
 def public(doc):
     if not doc: return doc
     doc['id'] = str(doc.pop('_id'))
@@ -122,6 +139,34 @@ async def lifespan(app: FastAPI):
                 'updated_at': datetime.now(timezone.utc),
                 'deleted_at': None,
             })
+    for code, name, category_name, style, image_file in WORKSHOP_PHOTO_SAMPLES:
+        if await db.catalogue_items.find_one({'design_code': code}):
+            continue
+        category = await db.categories.find_one({'name': category_name, 'metal_type': 'Gold', 'active': True})
+        if not category:
+            continue
+        now = datetime.now(timezone.utc)
+        image_url = image_base + image_file
+        await db.catalogue_items.insert_one({
+            'name': name,
+            'slug': slugify(f'Gold-{name}-{code}'),
+            'design_code': code,
+            'metal_type': 'Gold',
+            'category_id': str(category['_id']),
+            'subcategory': '',
+            'description': 'Photo supplied for design reference. Confirm metal, purity, exact weight, and availability with the workshop before ordering.',
+            'style': style,
+            'weight_range': 'Confirm with workshop',
+            'featured': False,
+            'published': True,
+            'sample': True,
+            'images': [{'id': code.lower() + '-image', 'url': image_url, 'alt': name}],
+            'primary_image': image_url,
+            'source_url': None,
+            'created_at': now,
+            'updated_at': now,
+            'deleted_at': None,
+        })
     await db.staged_imports.create_index([('review_status',1),('created_at',-1)])
     if settings.bootstrap_admin_email and settings.bootstrap_admin_password:
         await db.admin_users.update_one({'email':settings.bootstrap_admin_email.lower()},{'$setOnInsert':{'email':settings.bootstrap_admin_email.lower(),'password_hash':hash_password(settings.bootstrap_admin_password),'role':'admin','created_at':datetime.now(timezone.utc)}},upsert=True)

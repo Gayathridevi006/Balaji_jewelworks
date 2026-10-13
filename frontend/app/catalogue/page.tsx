@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Search } from 'lucide-react';
 import { api, imageUrl } from '../../lib/api';
-import { filterSampleDesigns, sampleCategories, sampleDesigns } from '../../lib/sample-catalogue';
+import { filterSampleDesigns, providedPhotoDesigns, sampleCategories, sampleDesigns } from '../../lib/sample-catalogue';
 import { sortCatalogueDesigns } from '../../lib/sort-catalogue';
 import { categoriesForMetal, type CatalogueCategory } from '../../lib/categories';
 
@@ -61,7 +61,20 @@ export default function Catalogue() {
     });
 
     api<{ items: Item[] }>(`/catalogue?${query}`)
-      .then((response) => setItems(sortCatalogueDesigns(response.items.length ? response.items : fallback())))
+      .then((response) => {
+        const categoryName = cats.find((entry) => entry.id === category)?.name;
+        const photoSamples = providedPhotoDesigns.filter((item) =>
+          (!metal || item.metal_type === metal) &&
+          (!category || item.category_name === categoryName) &&
+          (!style || item.style === style) &&
+          (!search || `${item.name} ${item.design_code}`.toLowerCase().includes(search.trim().toLowerCase())),
+        );
+        const rows = response.items.length ? response.items : fallback();
+        const uniqueRows = [...photoSamples, ...rows].filter((item, index, all) =>
+          all.findIndex((candidate) => candidate.design_code === item.design_code) === index,
+        );
+        setItems(sortCatalogueDesigns(uniqueRows));
+      })
       .catch(() => setItems(fallback()));
   }, [metal, category, style, search, cats]);
 
@@ -92,7 +105,7 @@ export default function Catalogue() {
       <div className="eyebrow">The Balaji collection</div>
       <h1 className="serif" style={{ fontSize: 48, fontWeight: 400, margin: '10px 0' }}>Jewellery catalogue</h1>
       <p style={{ color: '#746d63', marginBottom: 12 }}>Explore designs, then speak with our goldsmith about making them your own.</p>
-      <p style={{ color: '#8b7653', fontSize: 12, marginBottom: 28 }}>Illustrative sample designs · generated images · approximate weights only</p>
+      <p style={{ color: '#8b7653', fontSize: 12, marginBottom: 28 }}>Design references · original and supplied photos · confirm weights and specifications with the workshop</p>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(155px,1fr))', gap: 10, marginBottom: 28 }}>
         <label className="input" style={{ display: 'flex', gap: 8 }}>

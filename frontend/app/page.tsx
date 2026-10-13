@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, ArrowUpRight, MessageCircle, MoveRight } from 'lucide-react';
 import { api, imageUrl, whatsappLink } from '../lib/api';
-import { sampleDesigns } from '../lib/sample-catalogue';
+import { providedPhotoDesigns, sampleDesigns } from '../lib/sample-catalogue';
 import { standardCategoryNames } from '../lib/categories';
 
 type Item = {
@@ -19,9 +19,12 @@ type Item = {
 async function getItems(): Promise<Item[]> {
   try {
     const response = await api<{ items: Item[] }>('/catalogue?limit=8');
-    return response.items.length ? response.items.slice(0, 8) : sampleDesigns.slice(0, 8);
+    if (!response.items.length) return sampleDesigns.slice(-8).reverse();
+    return [...providedPhotoDesigns.slice().reverse(), ...response.items]
+      .filter((item, index, all) => all.findIndex((candidate) => candidate.design_code === item.design_code) === index)
+      .slice(0, 8);
   } catch {
-    return sampleDesigns.slice(0, 8);
+    return sampleDesigns.slice(-8).reverse();
   }
 }
 
