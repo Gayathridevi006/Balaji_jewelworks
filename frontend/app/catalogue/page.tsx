@@ -16,19 +16,34 @@ export default function Catalogue() {
   const [cats, setCats] = useState<Category[]>(sampleCategories);
   const [metal, setMetal] = useState('');
   const [category, setCategory] = useState('');
+  const [requestedCategoryName, setRequestedCategoryName] = useState('');
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false);
+  const [urlCategoryApplied, setUrlCategoryApplied] = useState(false);
   const [style, setStyle] = useState('');
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    const initial = new URLSearchParams(window.location.search).get('metal_type');
-    if (initial === 'Gold' || initial === 'Silver') setMetal(initial);
+    const params = new URLSearchParams(window.location.search);
+    const initialMetal = params.get('metal_type');
+    if (initialMetal === 'Gold' || initialMetal === 'Silver') setMetal(initialMetal);
+    setRequestedCategoryName(params.get('category_name') || '');
   }, []);
 
   useEffect(() => {
     api<Category[]>('/categories').then((rows) => {
       if (rows.length) setCats(rows);
-    }).catch(() => {});
+    }).catch(() => {}).finally(() => setCategoriesLoaded(true));
   }, []);
+
+  useEffect(() => {
+    if (!categoriesLoaded || urlCategoryApplied || !requestedCategoryName) return;
+    const selected = cats.find((entry) =>
+      entry.name.toLowerCase() === requestedCategoryName.toLowerCase() &&
+      (!metal || !entry.metal_type || entry.metal_type === metal),
+    );
+    if (selected) setCategory(selected.id);
+    setUrlCategoryApplied(true);
+  }, [categoriesLoaded, cats, metal, requestedCategoryName, urlCategoryApplied]);
 
   useEffect(() => {
     const query = new URLSearchParams();
