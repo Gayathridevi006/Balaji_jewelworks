@@ -36,12 +36,37 @@ const blankForm: DesignForm = {
   description: '', style: 'Traditional', weight_range: '', featured: false, published: false,
 };
 
+function sortDesigns(items: Item[]) {
+  const metalOrder: Record<string, number> = { Gold: 0, Silver: 1 };
+  return [...items].sort((a, b) =>
+    (metalOrder[a.metal_type] ?? 2) - (metalOrder[b.metal_type] ?? 2) ||
+    a.design_code.localeCompare(b.design_code, undefined, { numeric: true, sensitivity: 'base' }),
+  );
+}
+
+function apiConfigurationError() {
+  return 'The catalogue API is not connected. Set NEXT_PUBLIC_API_URL to your deployed FastAPI URL (ending in /api) in the Cloudflare Worker build variables, then rebuild and deploy.';
+}
+
+async function readJson<T>(response: Response, fallback: string): Promise<T> {
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.toLowerCase().includes('application/json')) {
+    if (contentType.toLowerCase().includes('text/html')) throw new Error(apiConfigurationError());
+    throw new Error(fallback);
+  }
+  try {
+    return await response.json() as T;
+  } catch {
+    throw new Error(fallback);
+  }
+}
+
 async function responseError(response: Response, fallback: string) {
   try {
-    const data = await response.json();
+    const data = await readJson<{ detail?: unknown }>(response, fallback);
     return typeof data.detail === 'string' ? data.detail : fallback;
-  } catch {
-    return fallback;
+  } catch (cause) {
+    return cause instanceof Error ? cause.message : fallback;
   }
 }
 
@@ -59,6 +84,11 @@ export default function Admin() {
   const [loading, setLoading] = useState(false);
 
   const previews = useMemo(() => files.map((file) => ({ file, url: URL.createObjectURL(file) })), [files]);
+  const sortedItems = sortDesigns(items);
+  const itemGroups = ['Gold', 'Silver'].map((metal) => ({
+    metal,
+    items: sortedItems.filter((item) => item.metal_type === metal),
+  })).filter((group) => group.items.length > 0);
 
   useEffect(() => {
     setToken(localStorage.getItem('bjw-admin') || '');
@@ -79,8 +109,8 @@ export default function Admin() {
       if (itemsResponse.status === 401) throw new Error('Your admin session expired. Sign in again.');
       if (!itemsResponse.ok) throw new Error(await responseError(itemsResponse, 'Could not load saved designs.'));
       if (!categoryResponse.ok) throw new Error('Could not load catalogue categories.');
-      setItems(await itemsResponse.json());
-      setCategories(await categoryResponse.json());
+      setItems(await readJson<Item[]>(itemsResponse, 'Could not load saved designs.'));
+      setCategories(await readJson<Category[]>(categoryResponse, 'Could not load catalogue categories.'));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not load admin data.');
     } finally {
@@ -103,8 +133,9 @@ export default function Admin() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      if (!response.ok) throw new Error(await responseError(response, 'Sign in failed. Check the email and password.'));
-      const data = await response.json();
+      const fallback = 'Sign in failed. Check the email and password.';
+      if (!response.ok) throw new Error(await responseError(response, fallback));
+      const data = await readJson<{ access_token?: string }>(response, fallback);
       if (!data.access_token) throw new Error('The server did not return an admin session.');
       localStorage.setItem('bjw-admin', data.access_token);
       setPassword('');
@@ -148,11 +179,13 @@ export default function Admin() {
         body: JSON.stringify({ ...form, published: false }),
       });
       if (!response.ok) throw new Error(await responseError(response, 'Could not save the design. Check the design code and required fields.'));
-      createdItem = await response.json();
+      const newItem = await readJson<Item>(response, 'The server did not return the saved design.');
+      if (!newItem?.id) throw new Error('The server did not return the saved design ID.');
+      createdItem = newItem;
 
       const upload = new FormData();
       files.forEach((file) => upload.append('files', file));
-      const uploadResponse = await fetch(`${base}/admin/catalogue/${createdItem.id}/images`, {
+      const uploadResponse = await fetch(`${base}/admin/catalogue/${newItem.id}/images`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: upload,
@@ -163,7 +196,7 @@ export default function Admin() {
       }
 
       if (form.published || form.featured) {
-        const publishResponse = await fetch(`${base}/admin/catalogue/${createdItem.id}`, {
+        const publishResponse = await fetch(`${base}/admin/catalogue/${newItem.id}`, {
           method: 'PUT',
           headers,
           body: JSON.stringify({ ...form, published: form.published }),
@@ -290,11 +323,14 @@ export default function Admin() {
 
         <section>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}><h2 className="serif" style={{ fontWeight: 400, marginTop: 0 }}>Saved designs ({items.length})</h2><button className="btn btn-light" onClick={() => void load()} disabled={loading}>{loading ? 'Refreshing…' : 'Refresh'}</button></div>
-          {items.length ? items.map((item) => <article className="card" key={item.id} style={{ padding: 12, marginBottom: 10, display: 'flex', gap: 12, alignItems: 'center' }}>
-            {item.images?.[0]?.url ? <img src={imageUrl(item.images[0].url)} alt={item.images[0].alt || item.name} style={{ width: 68, height: 78, objectFit: 'cover', background: '#eee8dc' }} /> : <div style={{ width: 68, height: 78, display: 'grid', placeItems: 'center', background: '#eee8dc', color: '#a77b35' }}><ImagePlus size={20} /></div>}
-            <div style={{ flex: 1, minWidth: 0 }}><b>{item.name}</b><small style={{ display: 'block', marginTop: 5, color: '#746d63' }}>{item.metal_type} · {item.design_code}</small><small style={{ display: 'block', marginTop: 4, color: '#746d63' }}>{item.weight_range || 'Weight not set'} · {item.published ? 'Published' : 'Draft'}</small></div>
-            <button type="button" aria-label={`Delete ${item.name}`} title="Move to deleted designs" onClick={() => void deleteDesign(item)} style={{ border: 0, background: 'transparent', color: '#8c4f3c', cursor: 'pointer', padding: 8 }}><Trash2 size={17} /></button>
-          </article>) : <div className="card" style={{ padding: 22, color: '#746d63' }}>{loading ? 'Loading saved designs…' : 'No saved designs yet. Add your first design using the form.'}</div>}
+          {items.length ? itemGroups.map((group) => <div key={group.metal}>
+            <h3 className="serif" style={{ fontWeight: 400, margin: '0 0 12px' }}>{group.metal} designs</h3>
+            {group.items.map((item) => <article className="card" key={item.id} style={{ padding: 12, marginBottom: 10, display: 'flex', gap: 12, alignItems: 'center' }}>
+              {item.images?.[0]?.url ? <img src={imageUrl(item.images[0].url)} alt={item.images[0].alt || item.name} style={{ width: 68, height: 78, objectFit: 'cover', background: '#eee8dc' }} /> : <div style={{ width: 68, height: 78, display: 'grid', placeItems: 'center', background: '#eee8dc', color: '#a77b35' }}><ImagePlus size={20} /></div>}
+              <div style={{ flex: 1, minWidth: 0 }}><b>{item.name}</b><small style={{ display: 'block', marginTop: 5, color: '#746d63' }}>{item.metal_type} · {item.design_code}</small><small style={{ display: 'block', marginTop: 4, color: '#746d63' }}>{item.weight_range || 'Weight not set'} · {item.published ? 'Published' : 'Draft'}</small></div>
+              <button type="button" aria-label={`Delete ${item.name}`} title="Move to deleted designs" onClick={() => void deleteDesign(item)} style={{ border: 0, background: 'transparent', color: '#8c4f3c', cursor: 'pointer', padding: 8 }}><Trash2 size={17} /></button>
+            </article>)}
+          </div>) : <div className="card" style={{ padding: 22, color: '#746d63' }}>{loading ? 'Loading saved designs…' : 'No saved designs yet. Add your first design using the form.'}</div>}
           <p style={{ fontSize: 12, color: '#746d63', marginTop: 20 }}>Supplier imports are reviewed separately at <a href="/admin/imports" style={{ color: '#a77b35' }}>Import review →</a></p>
         </section>
       </div>

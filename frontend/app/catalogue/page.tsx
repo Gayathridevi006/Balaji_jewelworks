@@ -9,6 +9,14 @@ import { filterSampleDesigns, sampleCategories, sampleDesigns } from '../../lib/
 type Item = (typeof sampleDesigns)[number];
 type Category = { id: string; name: string };
 
+function sortDesigns(items: Item[]) {
+  const metalOrder: Record<string, number> = { Gold: 0, Silver: 1 };
+  return [...items].sort((a, b) =>
+    (metalOrder[a.metal_type] ?? 2) - (metalOrder[b.metal_type] ?? 2) ||
+    a.design_code.localeCompare(b.design_code, undefined, { numeric: true, sensitivity: 'base' }),
+  );
+}
+
 export default function Catalogue() {
   const [items, setItems] = useState<Item[]>(sampleDesigns);
   const [cats, setCats] = useState<Category[]>(sampleCategories);
@@ -44,9 +52,28 @@ export default function Catalogue() {
     });
 
     api<{ items: Item[] }>(`/catalogue?${query}`)
-      .then((response) => setItems(response.items.length ? response.items : fallback()))
+      .then((response) => setItems(sortDesigns(response.items.length ? response.items : fallback())))
       .catch(() => setItems(fallback()));
   }, [metal, category, style, search, cats]);
+
+  const visibleItems = sortDesigns(items);
+  const groupedItems = metal
+    ? [{ title: '', items: visibleItems }]
+    : ['Gold', 'Silver'].map((title) => ({
+      title,
+      items: visibleItems.filter((item) => item.metal_type === title),
+    })).filter((group) => group.items.length > 0);
+
+  function productCard(item: Item) {
+    return <Link key={item.id} href={`/catalogue/${item.slug}`} className="card">
+      <img className="product-img" src={imageUrl(item.primary_image || item.images?.[0]?.url)} alt={item.name} />
+      <div style={{ padding: 14 }}>
+        <div style={{ fontSize: 10, color: '#a77b35', letterSpacing: '.12em' }}>{item.metal_type} · {item.design_code}</div>
+        <div className="serif" style={{ fontSize: 18, marginTop: 7 }}>{item.name}</div>
+        {item.weight_range && <div style={{ fontSize: 12, color: '#746d63', marginTop: 6 }}>{item.weight_range}</div>}
+      </div>
+    </Link>;
+  }
 
   return (
     <main className="container" style={{ padding: '60px 0' }}>
@@ -71,16 +98,10 @@ export default function Catalogue() {
         </select>
       </div>
 
-      {items.length ? <div className="grid-products">
-        {items.map((item) => <Link key={item.id} href={`/catalogue/${item.slug}`} className="card">
-          <img className="product-img" src={imageUrl(item.primary_image || item.images?.[0]?.url)} alt={item.name} />
-          <div style={{ padding: 14 }}>
-            <div style={{ fontSize: 10, color: '#a77b35', letterSpacing: '.12em' }}>{item.metal_type} · {item.design_code}</div>
-            <div className="serif" style={{ fontSize: 18, marginTop: 7 }}>{item.name}</div>
-            {item.weight_range && <div style={{ fontSize: 12, color: '#746d63', marginTop: 6 }}>{item.weight_range}</div>}
-          </div>
-        </Link>)}
-      </div> : <p style={{ padding: 30, textAlign: 'center', background: 'white' }}>No designs match those filters yet. <Link href="/contact" style={{ color: '#a77b35' }}>Ask about a custom design.</Link></p>}
+      {visibleItems.length ? groupedItems.map((group) => <section key={group.title || 'filtered'} style={{ marginTop: group.title ? 34 : 0 }}>
+        {group.title && <h2 className="serif" style={{ fontSize: 30, fontWeight: 400, margin: '0 0 16px' }}>{group.title} jewellery</h2>}
+        <div className="grid-products">{group.items.map(productCard)}</div>
+      </section>) : <p style={{ padding: 30, textAlign: 'center', background: 'white' }}>No designs match those filters yet. <Link href="/contact" style={{ color: '#a77b35' }}>Ask about a custom design.</Link></p>}
     </main>
   );
 }
