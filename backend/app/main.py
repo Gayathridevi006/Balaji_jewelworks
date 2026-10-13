@@ -12,7 +12,7 @@ from bson import ObjectId
 from PIL import Image
 from io import BytesIO
 from .config import settings
-from .schemas import DesignIn, CategoryIn, BusinessIn, LoginIn, ScrapeStartIn
+from .schemas import DesignIn, CategoryIn, BusinessIn, LoginIn, ContactEnquiryIn, ScrapeStartIn
 from .security import require_admin, verify_password, issue_token, hash_password
 from .utils import slugify
 from .catalogue_categories import SAMPLE_CATEGORY_WEIGHTS, STANDARD_CATEGORY_NAMES
@@ -75,6 +75,7 @@ async def lifespan(app: FastAPI):
     await db.catalogue_items.create_index('design_code', unique=True)
     await db.catalogue_items.create_index('slug', unique=True)
     await db.catalogue_items.create_index([('published',1),('metal_type',1),('category_id',1),('created_at',-1)])
+    await db.enquiries.create_index([('created_at', -1)])
     await db.categories.create_index([('display_order',1)])
     for metal in ('Gold', 'Silver'):
         for order, name in enumerate(STANDARD_CATEGORY_NAMES):
@@ -220,6 +221,25 @@ async def business():
     doc.pop('_id', None)
     return doc
 
+@app.post('/api/enquiries')
+@limiter.limit('5/hour')
+async def create_enquiry(request: Request, body: ContactEnquiryIn):
+    # Quietly discard likely bot submissions from the hidden honeypot field.
+    if body.website:
+        return {'ok': True}
+    now = datetime.now(timezone.utc)
+    await db.enquiries.insert_one({
+        'name': body.name,
+        'phone': body.phone,
+        'email': body.email,
+        'interest': body.interest,
+        'message': body.message,
+        'status': 'new',
+        'consent_at': now,
+        'created_at': now,
+    })
+    return {'ok': True, 'message': 'Your enquiry was received. We will contact you soon.'}
+
 @app.post('/api/admin/login')
 @limiter.limit('5/minute')
 async def login(request:Request,body:LoginIn):
@@ -235,6 +255,17 @@ async def overview(_:str=Depends(require_admin)):
 @app.get('/api/admin/catalogue')
 async def admin_catalogue(_:str=Depends(require_admin)):
     return [public(x) async for x in db.catalogue_items.find({'deleted_at':None}).sort('created_at',-1)]
+
+@app.get('/api/admin/enquiries')
+async def admin_enquiries(_:str=Depends(require_admin)):
+    return [public(x) async for x in db.enquiries.find().sort('created_at', -1).limit(200)]
+
+@app.delete('/api/admin/enquiries/{enquiry_id}')
+async def delete_enquiry(enquiry_id:str,_:str=Depends(require_admin)):
+    if not ObjectId.is_valid(enquiry_id): raise HTTPException(404, 'Enquiry not found')
+    result = await db.enquiries.delete_one({'_id': ObjectId(enquiry_id)})
+    if not result.deleted_count: raise HTTPException(404, 'Enquiry not found')
+    return {'ok': True}
 
 @app.post('/api/admin/catalogue')
 async def create_design(body:DesignIn,_:str=Depends(require_admin)):

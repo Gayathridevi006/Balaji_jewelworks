@@ -1,3 +1,4 @@
+import re
 from pydantic import BaseModel, Field, field_validator
 from typing import Literal, Optional
 
@@ -34,6 +35,52 @@ class BusinessIn(BaseModel):
 class LoginIn(BaseModel):
     email: str
     password: str
+
+class ContactEnquiryIn(BaseModel):
+    name: str = Field(min_length=2, max_length=100)
+    phone: str = Field(min_length=7, max_length=24)
+    email: str = Field(default='', max_length=254)
+    interest: str = Field(default='', max_length=120)
+    message: str = Field(default='', max_length=2000)
+    consent: bool
+    website: str = Field(default='', max_length=200)
+
+    @field_validator('name')
+    @classmethod
+    def clean_name(cls, value):
+        value = ' '.join(value.split())
+        if len(value) < 2:
+            raise ValueError('Please enter your name')
+        return value
+
+    @field_validator('phone')
+    @classmethod
+    def valid_phone(cls, value):
+        value = value.strip()
+        digits = re.sub(r'\D', '', value)
+        if not 7 <= len(digits) <= 15 or not re.fullmatch(r'[+0-9().\s-]+', value):
+            raise ValueError('Enter a valid phone number with country code if needed')
+        return value
+
+    @field_validator('email')
+    @classmethod
+    def valid_optional_email(cls, value):
+        value = value.strip().lower()
+        if value and not re.fullmatch(r'[^@\s]+@[^@\s]+\.[^@\s]+', value):
+            raise ValueError('Enter a valid email address')
+        return value
+
+    @field_validator('interest', 'message')
+    @classmethod
+    def trim_text(cls, value):
+        return value.strip()
+
+    @field_validator('consent')
+    @classmethod
+    def require_consent(cls, value):
+        if not value:
+            raise ValueError('Consent is required to submit this enquiry')
+        return value
 
 class ScrapeStartIn(BaseModel):
     source_url: str

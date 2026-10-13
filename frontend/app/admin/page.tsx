@@ -21,6 +21,16 @@ type Item = {
   sample?: boolean;
   images?: { id: string; url: string; alt?: string }[];
 };
+type Enquiry = {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  interest?: string;
+  message?: string;
+  status: string;
+  created_at: string;
+};
 type DesignForm = {
   name: string;
   design_code: string;
@@ -71,6 +81,7 @@ export default function Admin() {
   const [password, setPassword] = useState('');
   const [items, setItems] = useState<Item[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
   const [form, setForm] = useState<DesignForm>(blankForm);
   const [files, setFiles] = useState<File[]>([]);
   const [message, setMessage] = useState('');
@@ -107,6 +118,13 @@ export default function Admin() {
       if (!categoryResponse.ok) throw new Error('Could not load catalogue categories.');
       setItems(await readJson<Item[]>(itemsResponse, 'Could not load saved designs.'));
       setCategories(await readJson<Category[]>(categoryResponse, 'Could not load catalogue categories.'));
+      // Keep catalogue management usable if an older backend has not deployed enquiries yet.
+      try {
+        const enquiryResponse = await fetch(`${base}/admin/enquiries`, { headers, cache: 'no-store' });
+        setEnquiries(enquiryResponse.ok ? await readJson<Enquiry[]>(enquiryResponse, 'Could not load enquiries.') : []);
+      } catch {
+        setEnquiries([]);
+      }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not load admin data.');
     } finally {
@@ -229,10 +247,25 @@ export default function Admin() {
     }
   }
 
+  async function deleteEnquiry(enquiry: Enquiry) {
+    if (!confirm(`Delete the enquiry from ${enquiry.name}?`)) return;
+    setError('');
+    try {
+      const response = await fetch(`${base}/admin/enquiries/${enquiry.id}`, {
+        method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error(await responseError(response, 'Could not delete this enquiry.'));
+      setEnquiries((current) => current.filter((entry) => entry.id !== enquiry.id));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not delete this enquiry.');
+    }
+  }
+
   function logout() {
     localStorage.removeItem('bjw-admin');
     setToken('');
     setItems([]);
+    setEnquiries([]);
     setPassword('');
     setMessage('');
     setError('');
@@ -330,6 +363,23 @@ export default function Admin() {
           <p style={{ fontSize: 12, color: '#746d63', marginTop: 20 }}>Supplier imports are reviewed separately at <a href="/admin/imports" style={{ color: '#a77b35' }}>Import review →</a></p>
         </section>
       </div>
+      <section style={{ marginTop: 30 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+          <div><h2 className="serif" style={{ fontWeight: 400, margin: '0 0 5px' }}>Customer enquiries ({enquiries.length})</h2><p style={{ color: '#746d63', fontSize: 13, margin: 0 }}>Contact details are shown only in this signed-in admin area.</p></div>
+          <button className="btn btn-light" onClick={() => void load()} disabled={loading}>{loading ? 'Refreshing…' : 'Refresh enquiries'}</button>
+        </div>
+        {enquiries.length ? <div style={{ display: 'grid', gap: 10, marginTop: 14 }}>
+          {enquiries.map((enquiry) => <article className="card" key={enquiry.id} style={{ padding: 18, display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start' }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'baseline' }}><b>{enquiry.name}</b><small style={{ color: '#746d63' }}>{new Date(enquiry.created_at).toLocaleString()}</small></div>
+              <p style={{ margin: '8px 0', display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 13 }}><a href={`tel:${enquiry.phone}`} style={{ color: '#8b642c' }}>{enquiry.phone}</a>{enquiry.email && <a href={`mailto:${enquiry.email}`} style={{ color: '#8b642c' }}>{enquiry.email}</a>}</p>
+              {enquiry.interest && <p style={{ margin: '6px 0', fontSize: 13 }}><b>Interested in:</b> {enquiry.interest}</p>}
+              {enquiry.message && <p style={{ margin: '6px 0 0', color: '#746d63', fontSize: 13, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{enquiry.message}</p>}
+            </div>
+            <button type="button" aria-label={`Delete enquiry from ${enquiry.name}`} title="Delete enquiry" onClick={() => void deleteEnquiry(enquiry)} style={{ border: 0, background: 'transparent', color: '#8c4f3c', cursor: 'pointer', padding: 8, flexShrink: 0 }}><Trash2 size={17} /></button>
+          </article>)}
+        </div> : <div className="card" style={{ padding: 20, marginTop: 14, color: '#746d63' }}>No enquiries yet. New contact form submissions will appear here when the catalogue API is connected.</div>}
+      </section>
       <style>{'@media(max-width:780px){main>div:nth-of-type(2){grid-template-columns:1fr!important}}'}</style>
     </main>
   );
