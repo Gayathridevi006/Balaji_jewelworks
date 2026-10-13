@@ -15,6 +15,7 @@ from .config import settings
 from .schemas import DesignIn, CategoryIn, BusinessIn, LoginIn, ScrapeStartIn
 from .security import require_admin, verify_password, issue_token, hash_password
 from .utils import slugify
+from .catalogue_categories import SAMPLE_CATEGORY_WEIGHTS, STANDARD_CATEGORY_NAMES
 from .scraper import collect_product
 from .storage import save_image, delete_image
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -35,9 +36,65 @@ async def lifespan(app: FastAPI):
     await db.catalogue_items.create_index('slug', unique=True)
     await db.catalogue_items.create_index([('published',1),('metal_type',1),('category_id',1),('created_at',-1)])
     await db.categories.create_index([('display_order',1)])
-    if await db.categories.count_documents({}) == 0:
-        names=['Earrings','Rings','Necklaces','Chains','Bangles','Bracelets','Pendants','Anklets','Nose Pins','Jhumkas','Haram','Mangalsutra','Traditional Jewellery','Bridal Jewellery','Kids Jewellery','Custom Designs']
-        await db.categories.insert_many([{'name':n,'slug':slugify(n),'metal_type':'Both','display_order':i,'active':True} for i,n in enumerate(names)])
+    for metal in ('Gold', 'Silver'):
+        for order, name in enumerate(STANDARD_CATEGORY_NAMES):
+            exists = await db.categories.find_one({'name': name, 'metal_type': metal, 'active': True})
+            if not exists:
+                await db.categories.insert_one({
+                    'name': name,
+                    'slug': slugify(f'{metal}-{name}'),
+                    'metal_type': metal,
+                    'display_order': order,
+                    'active': True,
+                })
+    for legacy in await db.categories.find({'metal_type': 'Both', 'active': True}).to_list(None):
+        for metal in ('Gold', 'Silver'):
+            specific = await db.categories.find_one({'name': legacy['name'], 'metal_type': metal, 'active': True})
+            if specific:
+                await db.catalogue_items.update_many(
+                    {'category_id': str(legacy['_id']), 'metal_type': metal},
+                    {'$set': {'category_id': str(specific['_id'])}},
+                )
+    image_base = 'https://balaji-jewelworks.ms-gayathridevi6.workers.dev/products/'
+    for metal in ('Gold', 'Silver'):
+        for order, name in enumerate(STANDARD_CATEGORY_NAMES):
+            category = await db.categories.find_one({'name': name, 'metal_type': metal, 'active': True})
+            if not category or await db.catalogue_items.find_one({
+                'category_id': str(category['_id']), 'metal_type': metal, 'deleted_at': None,
+            }):
+                continue
+            code = f"BJW-{'G' if metal == 'Gold' else 'S'}-CAT-{order + 1:03d}"
+            if await db.catalogue_items.find_one({'design_code': code}):
+                continue
+            if metal == 'Silver':
+                image_file = 'bjw-s-001-silver-drops.webp'
+            elif name in ('Necklaces', 'Chains', 'Harams', 'Mangalsutra', 'Bridal Jewellery'):
+                image_file = 'bjw-g-001-temple-necklace.webp'
+            elif name in ('Earrings', 'Jhumkas'):
+                image_file = 'bjw-g-002-pearl-jhumkas.webp'
+            else:
+                image_file = 'bjw-g-003-enamel-bangles.webp'
+            image_url = image_base + image_file
+            item_name = 'Heritage Pearl Jhumkas' if metal == 'Gold' and name == 'Jhumkas' else f'{metal} {name} Sample'
+            await db.catalogue_items.insert_one({
+                'name': item_name,
+                'design_code': code,
+                'metal_type': metal,
+                'category_id': str(category['_id']),
+                'subcategory': '',
+                'description': f'Illustrative {metal.lower()} {name.lower()} catalogue sample. Confirm the design, image, and approximate weight with the workshop before treating it as an actual product.',
+                'style': 'Traditional',
+                'weight_range': SAMPLE_CATEGORY_WEIGHTS[name][metal],
+                'featured': False,
+                'published': True,
+                'sample': True,
+                'images': [{'id': code.lower() + '-image', 'url': image_url, 'alt': f'{metal} {name} illustrative sample'}],
+                'primary_image': image_url,
+                'source_url': None,
+                'created_at': datetime.now(timezone.utc),
+                'updated_at': datetime.now(timezone.utc),
+                'deleted_at': None,
+            })
     await db.staged_imports.create_index([('review_status',1),('created_at',-1)])
     if settings.bootstrap_admin_email and settings.bootstrap_admin_password:
         await db.admin_users.update_one({'email':settings.bootstrap_admin_email.lower()},{'$setOnInsert':{'email':settings.bootstrap_admin_email.lower(),'password_hash':hash_password(settings.bootstrap_admin_password),'role':'admin','created_at':datetime.now(timezone.utc)}},upsert=True)

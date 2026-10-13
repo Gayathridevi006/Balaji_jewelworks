@@ -6,9 +6,10 @@ import { Search } from 'lucide-react';
 import { api, imageUrl } from '../../lib/api';
 import { filterSampleDesigns, sampleCategories, sampleDesigns } from '../../lib/sample-catalogue';
 import { sortCatalogueDesigns } from '../../lib/sort-catalogue';
+import { categoriesForMetal, type CatalogueCategory } from '../../lib/categories';
 
 type Item = (typeof sampleDesigns)[number];
-type Category = { id: string; name: string };
+type Category = CatalogueCategory;
 
 export default function Catalogue() {
   const [items, setItems] = useState<Item[]>(sampleDesigns);
@@ -50,6 +51,9 @@ export default function Catalogue() {
   }, [metal, category, style, search, cats]);
 
   const visibleItems = sortCatalogueDesigns(items);
+  const categoryOptions = metal
+    ? categoriesForMetal(cats, metal as 'Gold' | 'Silver')
+    : cats;
   const groupedItems = metal
     ? [{ title: '', items: visibleItems }]
     : ['Gold', 'Silver'].map((title) => ({
@@ -80,11 +84,15 @@ export default function Catalogue() {
           <Search size={17} />
           <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Name or design code" style={{ border: 0, outline: 0, width: '100%', background: 'transparent' }} />
         </label>
-        <select className="input" value={metal} onChange={(event) => setMetal(event.target.value)}>
+        <select className="input" value={metal} onChange={(event) => { setMetal(event.target.value); setCategory(''); }}>
           <option value="">Gold &amp; Silver</option><option>Gold</option><option>Silver</option>
         </select>
-        <select className="input" value={category} onChange={(event) => setCategory(event.target.value)}>
-          <option value="">All categories</option>{cats.map((entry) => <option key={entry.id} value={entry.id}>{entry.name}</option>)}
+        <select className="input" value={category} onChange={(event) => {
+          const selected = cats.find((entry) => entry.id === event.target.value);
+          setCategory(event.target.value);
+          if (selected?.metal_type === 'Gold' || selected?.metal_type === 'Silver') setMetal(selected.metal_type);
+        }}>
+          <option value="">All categories</option>{categoryOptions.map((entry) => <option key={entry.id} value={entry.id}>{!metal && entry.metal_type && entry.metal_type !== 'Both' ? `${entry.metal_type} · ` : ''}{entry.name}</option>)}
         </select>
         <select className="input" value={style} onChange={(event) => setStyle(event.target.value)}>
           <option value="">All styles</option>{['Traditional', 'Modern', 'Bridal', 'Classic', 'Contemporary'].map((entry) => <option key={entry}>{entry}</option>)}

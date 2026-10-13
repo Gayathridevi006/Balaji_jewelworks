@@ -3,12 +3,13 @@
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
 import { ImagePlus, LoaderCircle, LogOut, PackagePlus, Trash2, Upload } from 'lucide-react';
 import { imageUrl } from '../../lib/api';
+import { categoriesForMetal, type CatalogueCategory } from '../../lib/categories';
 import { sortCatalogueDesigns } from '../../lib/sort-catalogue';
 
 const base = process.env.NEXT_PUBLIC_API_URL || '/api';
 const imageLimit = 8 * 1024 * 1024;
 
-type Category = { id: string; name: string };
+type Category = CatalogueCategory;
 type Item = {
   id: string;
   name: string;
@@ -17,6 +18,7 @@ type Item = {
   weight_range?: string;
   published: boolean;
   featured: boolean;
+  sample?: boolean;
   images?: { id: string; url: string; alt?: string }[];
 };
 type DesignForm = {
@@ -78,6 +80,7 @@ export default function Admin() {
 
   const previews = useMemo(() => files.map((file) => ({ file, url: URL.createObjectURL(file) })), [files]);
   const sortedItems = sortCatalogueDesigns(items);
+  const categoryOptions = categoriesForMetal(categories, form.metal_type);
   const itemGroups = ['Gold', 'Silver'].map((metal) => ({
     metal,
     items: sortedItems.filter((item) => item.metal_type === metal),
@@ -277,10 +280,10 @@ export default function Admin() {
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 12 }}>
               <label style={{ display: 'grid', gap: 6, fontSize: 13 }}>Metal *
-                <select className="input" value={form.metal_type} onChange={(event) => setForm({ ...form, metal_type: event.target.value as DesignForm['metal_type'] })}><option>Gold</option><option>Silver</option></select>
+                <select className="input" value={form.metal_type} onChange={(event) => setForm({ ...form, metal_type: event.target.value as DesignForm['metal_type'], category_id: '' })}><option>Gold</option><option>Silver</option></select>
               </label>
               <label style={{ display: 'grid', gap: 6, fontSize: 13 }}>Category *
-                <select className="input" required value={form.category_id} onChange={(event) => setForm({ ...form, category_id: event.target.value })}><option value="">Select category</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select>
+                <select className="input" required value={form.category_id} onChange={(event) => setForm({ ...form, category_id: event.target.value })}><option value="">Select {form.metal_type.toLowerCase()} category</option>{categoryOptions.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select>
               </label>
               <label style={{ display: 'grid', gap: 6, fontSize: 13 }}>Style
                 <select className="input" value={form.style} onChange={(event) => setForm({ ...form, style: event.target.value })}>{['Traditional', 'Modern', 'Bridal', 'Classic', 'Contemporary'].map((style) => <option key={style}>{style}</option>)}</select>
@@ -320,7 +323,7 @@ export default function Admin() {
             <h3 className="serif" style={{ fontWeight: 400, margin: '0 0 12px' }}>{group.metal} designs</h3>
             {group.items.map((item) => <article className="card" key={item.id} style={{ padding: 12, marginBottom: 10, display: 'flex', gap: 12, alignItems: 'center' }}>
               {item.images?.[0]?.url ? <img src={imageUrl(item.images[0].url)} alt={item.images[0].alt || item.name} style={{ width: 68, height: 78, objectFit: 'cover', background: '#eee8dc' }} /> : <div style={{ width: 68, height: 78, display: 'grid', placeItems: 'center', background: '#eee8dc', color: '#a77b35' }}><ImagePlus size={20} /></div>}
-              <div style={{ flex: 1, minWidth: 0 }}><b>{item.name}</b><small style={{ display: 'block', marginTop: 5, color: '#746d63' }}>{item.metal_type} · {item.design_code}</small><small style={{ display: 'block', marginTop: 4, color: '#746d63' }}>{item.weight_range || 'Weight not set'} · {item.published ? 'Published' : 'Draft'}</small></div>
+              <div style={{ flex: 1, minWidth: 0 }}><b>{item.name}</b><small style={{ display: 'block', marginTop: 5, color: '#746d63' }}>{item.metal_type} · {item.design_code}</small><small style={{ display: 'block', marginTop: 4, color: '#746d63' }}>{item.weight_range || 'Weight not set'} · {item.published ? 'Published' : 'Draft'}</small>{item.sample && <small style={{ display: 'block', marginTop: 4, color: '#8b7653' }}>Illustrative starter sample · confirm details and images before use</small>}</div>
               <button type="button" aria-label={`Delete ${item.name}`} title="Move to deleted designs" onClick={() => void deleteDesign(item)} style={{ border: 0, background: 'transparent', color: '#8c4f3c', cursor: 'pointer', padding: 8 }}><Trash2 size={17} /></button>
             </article>)}
           </div>) : <div className="card" style={{ padding: 22, color: '#746d63' }}>{loading ? 'Loading saved designs…' : 'No saved designs yet. Add your first design using the form.'}</div>}

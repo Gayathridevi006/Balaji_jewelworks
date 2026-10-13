@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: balaji-catalogue-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB
+        value: balaji_jewelry
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: https://balaji-jewelworks.ms-gayathridevi6.workers.dev
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        value: gayathri@balajijewel.com
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
+      - key: STORAGE_BACKEND
+        value: r2
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET_NAME
+        sync: false
+      - key: R2_PUBLIC_BASE_URL
+        sync: false
