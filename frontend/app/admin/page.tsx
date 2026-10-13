@@ -3,6 +3,7 @@
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
 import { ImagePlus, LoaderCircle, LogOut, PackagePlus, Trash2, Upload } from 'lucide-react';
 import { imageUrl } from '../../lib/api';
+import { sortCatalogueDesigns } from '../../lib/sort-catalogue';
 
 const base = process.env.NEXT_PUBLIC_API_URL || '/api';
 const imageLimit = 8 * 1024 * 1024;
@@ -35,14 +36,6 @@ const blankForm: DesignForm = {
   name: '', design_code: '', metal_type: 'Gold', category_id: '', subcategory: '',
   description: '', style: 'Traditional', weight_range: '', featured: false, published: false,
 };
-
-function sortDesigns(items: Item[]) {
-  const metalOrder: Record<string, number> = { Gold: 0, Silver: 1 };
-  return [...items].sort((a, b) =>
-    (metalOrder[a.metal_type] ?? 2) - (metalOrder[b.metal_type] ?? 2) ||
-    a.design_code.localeCompare(b.design_code, undefined, { numeric: true, sensitivity: 'base' }),
-  );
-}
 
 function apiConfigurationError() {
   return 'The catalogue API is not connected. Set NEXT_PUBLIC_API_URL to your deployed FastAPI URL (ending in /api) in the Cloudflare Worker build variables, then rebuild and deploy.';
@@ -84,7 +77,7 @@ export default function Admin() {
   const [loading, setLoading] = useState(false);
 
   const previews = useMemo(() => files.map((file) => ({ file, url: URL.createObjectURL(file) })), [files]);
-  const sortedItems = sortDesigns(items);
+  const sortedItems = sortCatalogueDesigns(items);
   const itemGroups = ['Gold', 'Silver'].map((metal) => ({
     metal,
     items: sortedItems.filter((item) => item.metal_type === metal),

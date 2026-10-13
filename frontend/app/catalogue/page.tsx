@@ -5,17 +5,10 @@ import Link from 'next/link';
 import { Search } from 'lucide-react';
 import { api, imageUrl } from '../../lib/api';
 import { filterSampleDesigns, sampleCategories, sampleDesigns } from '../../lib/sample-catalogue';
+import { sortCatalogueDesigns } from '../../lib/sort-catalogue';
 
 type Item = (typeof sampleDesigns)[number];
 type Category = { id: string; name: string };
-
-function sortDesigns(items: Item[]) {
-  const metalOrder: Record<string, number> = { Gold: 0, Silver: 1 };
-  return [...items].sort((a, b) =>
-    (metalOrder[a.metal_type] ?? 2) - (metalOrder[b.metal_type] ?? 2) ||
-    a.design_code.localeCompare(b.design_code, undefined, { numeric: true, sensitivity: 'base' }),
-  );
-}
 
 export default function Catalogue() {
   const [items, setItems] = useState<Item[]>(sampleDesigns);
@@ -52,11 +45,11 @@ export default function Catalogue() {
     });
 
     api<{ items: Item[] }>(`/catalogue?${query}`)
-      .then((response) => setItems(sortDesigns(response.items.length ? response.items : fallback())))
+      .then((response) => setItems(sortCatalogueDesigns(response.items.length ? response.items : fallback())))
       .catch(() => setItems(fallback()));
   }, [metal, category, style, search, cats]);
 
-  const visibleItems = sortDesigns(items);
+  const visibleItems = sortCatalogueDesigns(items);
   const groupedItems = metal
     ? [{ title: '', items: visibleItems }]
     : ['Gold', 'Silver'].map((title) => ({
