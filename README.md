@@ -1,4 +1,4 @@
-# Balaji Jewelry Works
+# Balaji Jewellery Works
 
 A mobile-first jewellery catalogue and enquiry site. This is a custom-order catalogue: there are no prices, cart, checkout, payment, or customer accounts. Customers browse designs and speak directly with the goldsmith.
 

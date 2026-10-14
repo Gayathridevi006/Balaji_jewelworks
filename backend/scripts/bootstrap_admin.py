@@ -12,6 +12,6 @@ async def main():
     await db.admin_users.update_one({'email':settings.bootstrap_admin_email.lower()},{'$setOnInsert':{'email':settings.bootstrap_admin_email.lower(),'password_hash':hash_password(settings.bootstrap_admin_password),'role':'admin','created_at':datetime.now(timezone.utc)}},upsert=True)
     for idx,name in enumerate(DEFAULT_CATEGORIES):
         await db.categories.update_one({'name':name},{'$setOnInsert':{'name':name,'slug':name.lower().replace(' ','-'),'metal_type':'Both','display_order':idx,'active':True}},upsert=True)
-    await db.business_settings.update_one({'_id':'main'},{'$setOnInsert':{'shop_name':'Balaji Jewelry Works'}},upsert=True)
+    await db.business_settings.update_one({'_id':'main'},{'$setOnInsert':{'shop_name':'Balaji Jewellery Works'}},upsert=True)
     client.close(); print('Admin, starter categories, and business settings initialized.')
 asyncio.run(main())

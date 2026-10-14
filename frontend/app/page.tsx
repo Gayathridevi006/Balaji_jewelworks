@@ -116,7 +116,7 @@ export default async function Home() {
           <div>
             <div className="eyebrow">Our craft, your story</div>
             <h2 className="serif" style={{ fontSize: 42, fontWeight: 400, lineHeight: 1.15 }}>A little more personal.<br />A little more you.</h2>
-            <p style={{ color: '#655e54', lineHeight: 1.9, fontSize: 14 }}>At Balaji Jewelry Works, every piece begins with a conversation. Select a design, tell us what you have in mind, and our goldsmith will work with you on the details.</p>
+            <p style={{ color: '#655e54', lineHeight: 1.9, fontSize: 14 }}>At Balaji Jewellery Works, every piece begins with a conversation. Select a design, tell us what you have in mind, and our goldsmith will work with you on the details.</p>
             <Link href="/contact" className="btn btn-light" style={{ marginTop: 14 }}>Meet your goldsmith <ArrowRight size={15} /></Link>
           </div>
           <img src="/products/bjw-g-003-enamel-bangles.webp" alt="Illustrative engraved gold bangles" style={{ width: '100%', maxHeight: 390, objectFit: 'cover' }} />
@@ -127,7 +127,7 @@ export default async function Home() {
         <div className="eyebrow">Your next favourite piece is a conversation away</div>
         <h2 className="serif" style={{ fontWeight: 400, fontSize: 37 }}>Have a design in mind?</h2>
         <p style={{ color: '#746d63' }}>Tell us what you love. We’ll help you make it yours.</p>
-        <a className="btn" href={whatsappLink('Hello Balaji Jewelry Works, I would like to discuss a custom jewellery design.')}><MessageCircle size={16} /> Talk to the goldsmith</a>
+        <a className="btn" href={whatsappLink('Hello Balaji Jewellery Works, I would like to discuss a custom jewellery design.')}><MessageCircle size={16} /> Talk to the goldsmith</a>
       </section>
     </main>
   );

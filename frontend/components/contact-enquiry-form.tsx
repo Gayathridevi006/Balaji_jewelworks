@@ -30,7 +30,7 @@ export default function ContactEnquiryForm({ whatsapp }: Props) {
       website: String(values.get('website') || '').trim(),
     };
     const whatsappText = [
-      'Hello Balaji Jewelry Works, I would like to enquire.',
+      'Hello Balaji Jewellery Works, I would like to enquire.',
       `Name: ${details.name}`,
       `Phone: ${details.phone}`,
       details.email ? `Email: ${details.email}` : '',
@@ -81,7 +81,7 @@ export default function ContactEnquiryForm({ whatsapp }: Props) {
       </label>
       <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 12, lineHeight: 1.6, color: '#746d63' }}>
         <input type="checkbox" name="consent" required style={{ marginTop: 3 }} />
-        <span>I agree that Balaji Jewelry Works may use these details to reply to my enquiry.</span>
+        <span>I agree that Balaji Jewellery Works may use these details to reply to my enquiry.</span>
       </label>
       <button className="btn" type="submit" disabled={sending}>
         {sending ? <><LoaderCircle size={16} /> Sending…</> : <><Send size={15} /> Send enquiry</>}

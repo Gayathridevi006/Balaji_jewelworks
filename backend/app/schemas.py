@@ -21,7 +21,7 @@ class CategoryIn(BaseModel):
     active: bool = True
 
 class BusinessIn(BaseModel):
-    shop_name: str = 'Balaji Jewelry Works'
+    shop_name: str = 'Balaji Jewellery Works'
     goldsmith_name: str = ''
     address: str = ''
     phone: str = ''

@@ -97,6 +97,10 @@ async def lifespan(app: FastAPI):
     await db.catalogue_items.create_index([('published',1),('metal_type',1),('category_id',1),('created_at',-1)])
     await db.enquiries.create_index([('created_at', -1)])
     await db.categories.create_index([('display_order',1)])
+    await db.business_settings.update_one(
+        {'_id': 'main', 'shop_name': 'Balaji Jewelry Works'},
+        {'$set': {'shop_name': 'Balaji Jewellery Works'}},
+    )
     for metal in ('Gold', 'Silver'):
         for order, name in enumerate(STANDARD_CATEGORY_NAMES):
             exists = await db.categories.find_one({'name': name, 'metal_type': metal, 'active': True})
@@ -199,7 +203,7 @@ async def lifespan(app: FastAPI):
     yield
     client.close()
 
-app=FastAPI(title='Balaji Jewelry Works API',version='1.0.0',lifespan=lifespan)
+app=FastAPI(title='Balaji Jewellery Works API',version='1.0.0',lifespan=lifespan)
 limiter=Limiter(key_func=get_remote_address)
 app.state.limiter=limiter
 app.add_exception_handler(RateLimitExceeded,_rate_limit_exceeded_handler)
@@ -241,7 +245,7 @@ async def categories():
 
 @app.get('/api/business')
 async def business():
-    doc = await db.business_settings.find_one({'_id':'main'}) or {'shop_name':'Balaji Jewelry Works','about':'Handcrafted jewellery designs, made to your preference.'}
+    doc = await db.business_settings.find_one({'_id':'main'}) or {'shop_name':'Balaji Jewellery Works','about':'Handcrafted jewellery designs, made to your preference.'}
     doc.pop('_id', None)
     return doc
 
