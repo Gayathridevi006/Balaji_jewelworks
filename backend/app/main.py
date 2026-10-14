@@ -113,6 +113,21 @@ WORKSHOP_PHOTO_SAMPLES = [
     ('BJW-G-REF-162', 'Leaf Openwork Ring', 'Finger Rings', 'Contemporary', 'bjw-gold-leaf-openwork-ring.webp'),
     ('BJW-G-REF-163', 'Pearl Centre Flower Ring', 'Finger Rings', 'Classic', 'bjw-gold-pearl-flower-ring.webp'),
     ('BJW-G-REF-164', 'Braided Leaf Ring', 'Finger Rings', 'Classic', 'bjw-gold-braided-leaf-ring.webp'),
+    ('BJW-G-REF-165', 'Gold Net Pattern Ring', 'Finger Rings', 'Contemporary', 'bjw-gold-net-pattern-ring.webp'),
+    ('BJW-G-REF-166', 'Flower Arc Ring', 'Finger Rings', 'Classic', 'bjw-gold-flower-arc-ring.webp'),
+    ('BJW-G-REF-167', 'Open Oval Hoop Earrings', 'Earrings', 'Contemporary', 'bjw-gold-open-oval-hoop-earrings.webp'),
+    ('BJW-G-REF-168', 'Floral Filigree Ring', 'Finger Rings', 'Traditional', 'bjw-gold-floral-filigree-ring.webp'),
+    ('BJW-G-REF-169', 'Geometric Lattice Pendant', 'Pendants', 'Contemporary', 'bjw-gold-geometric-lattice-pendant.webp'),
+    ('BJW-G-REF-170', 'Classic Round Gold Bangle', 'Bangles', 'Classic', 'bjw-gold-classic-round-bangle.webp'),
+    ('BJW-G-REF-171', 'Flower Centre Stud Earrings', 'Earrings', 'Classic', 'bjw-gold-flower-stud-earrings.webp'),
+    ('BJW-G-REF-172', 'Spiral Disc Stud Earrings', 'Earrings', 'Contemporary', 'bjw-gold-spiral-stud-earrings.webp'),
+    ('BJW-G-REF-173', 'Two Tone Link Chain', 'Chains', 'Contemporary', 'bjw-gold-two-tone-link-chain.webp'),
+    ('BJW-G-REF-174', 'Fine Gold Chain', 'Chains', 'Classic', 'bjw-gold-fine-chain.webp'),
+    ('BJW-G-REF-175', 'Segment Link Gold Chain', 'Chains', 'Classic', 'bjw-gold-segment-link-chain.webp'),
+    ('BJW-G-REF-176', 'Engraved Floral Gold Bangle', 'Bangles', 'Traditional', 'bjw-gold-engraved-floral-bangle.webp'),
+    ('BJW-G-REF-177', 'Pearl Cone Jhumkas', 'Jhumkas', 'Traditional', 'bjw-gold-pearl-cone-jhumkas.webp'),
+    ('BJW-G-REF-178', 'Openwork Statement Ring', 'Finger Rings', 'Contemporary', 'bjw-gold-openwork-statement-ring.webp'),
+    ('BJW-G-REF-179', 'Four Petal Stud Earrings', 'Earrings', 'Classic', 'bjw-gold-four-petal-stud-earrings.webp'),
 ]
 
 def public(doc):
