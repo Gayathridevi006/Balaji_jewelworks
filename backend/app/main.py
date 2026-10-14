@@ -146,6 +146,41 @@ WORKSHOP_PHOTO_SAMPLES = [
     ('BJW-G-REF-195', 'Pearl Lattice Drop Earrings', 'Earrings', 'Contemporary', 'bjw-gold-pearl-lattice-drop-earrings.webp', 'Women'),
     ('BJW-G-REF-196', 'Feather Pearl Earrings', 'Earrings', 'Contemporary', 'bjw-gold-feather-pearl-earrings.webp', 'Women'),
     ('BJW-G-REF-197', 'Diamond Halo Drop Earrings', 'Earrings', 'Classic', 'bjw-gold-diamond-hoop-drop-earrings.webp', 'Women'),
+
+    ('BJW-G-REF-198', 'Leaf Cluster Drop Earrings', 'Earrings', 'Traditional', 'bjw-gold-leaf-cluster-drop-earrings.webp', 'Women'),
+    ('BJW-G-REF-199', 'Pearl Filigree Dome Jhumkas', 'Jhumkas', 'Traditional', 'bjw-gold-filigree-dome-jhumkas.webp', 'Women'),
+    ('BJW-G-REF-200', 'Feather Disc Drop Earrings', 'Earrings', 'Contemporary', 'bjw-gold-feather-disc-drop-earrings.webp', 'Women'),
+    ('BJW-G-REF-201', 'Geometric Cage Drop Earrings', 'Earrings', 'Contemporary', 'bjw-gold-geometric-frame-earrings.webp', 'Women'),
+    ('BJW-G-REF-202', 'Pearl Chandelier Earrings', 'Earrings', 'Traditional', 'bjw-gold-pearl-chandelier-earrings.webp', 'Women'),
+    ('BJW-G-REF-203', 'Long Leaf Chandelier Earrings', 'Earrings', 'Contemporary', 'bjw-gold-long-leaf-chandelier-earrings.webp', 'Women'),
+    ('BJW-G-REF-204', 'Ruby Pearl Drop Earrings', 'Earrings', 'Traditional', 'bjw-gold-ruby-pearl-drop-earrings.webp', 'Women'),
+    ('BJW-G-REF-205', 'Crystal Triangle Stud Earrings', 'Earrings', 'Contemporary', 'bjw-gold-triangle-stud-earrings.webp', 'Women'),
+    ('BJW-G-REF-206', 'Emerald Halo Drop Earrings', 'Earrings', 'Classic', 'bjw-gold-emerald-halo-earrings.webp', 'Women'),
+    ('BJW-G-REF-207', 'Pearl Hoop Chandelier Earrings', 'Earrings', 'Traditional', 'bjw-gold-pearl-hoop-chandelier-earrings.webp', 'Women'),
+    ('BJW-G-REF-208', 'Cascading Leaf Earrings', 'Earrings', 'Traditional', 'bjw-gold-cascading-leaf-earrings.webp', 'Women'),
+    ('BJW-G-REF-209', 'Ribbed Ball Stud Earrings', 'Earrings', 'Classic', 'bjw-gold-ribbed-ball-stud-earrings.webp', 'Women'),
+    ('BJW-G-REF-210', 'Open Cage Drop Earrings', 'Earrings', 'Contemporary', 'bjw-gold-open-cage-drop-earrings.webp', 'Women'),
+    ('BJW-G-REF-211', 'Emerald Pearl Drop Earrings', 'Earrings', 'Classic', 'bjw-gold-emerald-pearl-drop-earrings.webp', 'Women'),
+    ('BJW-G-REF-212', 'Lattice Teardrop Earrings', 'Earrings', 'Contemporary', 'bjw-gold-lattice-teardrop-earrings.webp', 'Women'),
+    ('BJW-G-REF-213', 'Wave Disc Drop Earrings', 'Earrings', 'Contemporary', 'bjw-gold-wave-disc-earrings.webp', 'Women'),
+    ('BJW-G-REF-214', 'Ruby Floral Bangles', 'Bangles', 'Traditional', 'bjw-gold-ruby-floral-bangles.webp', 'Women'),
+    ('BJW-G-REF-215', 'Ornate Long Necklace', 'Necklaces', 'Traditional', 'bjw-gold-ornate-long-necklace.webp', 'Women'),
+    ('BJW-G-REF-216', 'Layered Gold Necklace Look', 'Necklaces', 'Traditional', 'bjw-gold-layered-necklace-look.webp', 'Women'),
+    ('BJW-G-REF-217', 'Heritage Bridal Necklace Set', 'Bridal Jewellery', 'Bridal', 'bjw-gold-heritage-bridal-set.webp', 'Women'),
+    ('BJW-G-REF-218', 'Spike Drop Necklace', 'Necklaces', 'Traditional', 'bjw-gold-spike-drop-necklace.webp', 'Women'),
+    ('BJW-G-REF-219', 'Temple Link Necklace', 'Necklaces', 'Traditional', 'bjw-gold-temple-link-necklace.webp', 'Women'),
+    ('BJW-G-REF-220', 'Boxed Bridal Jewellery Set', 'Bridal Jewellery', 'Bridal', 'bjw-gold-boxed-bridal-set.webp', 'Women'),
+    ('BJW-G-REF-221', 'Layered Temple Necklace Set', 'Bridal Jewellery', 'Bridal', 'bjw-gold-layered-temple-sets.webp', 'Women'),
+    ('BJW-G-REF-222', 'Ornate Bridal Necklace Set', 'Bridal Jewellery', 'Bridal', 'bjw-gold-ornate-bridal-necklace-set.webp', 'Women'),
+    ('BJW-G-REF-223', 'Floral Bridal Necklace Set', 'Bridal Jewellery', 'Bridal', 'bjw-gold-flower-bridal-set-blue.webp', 'Women'),
+    ('BJW-G-REF-224', 'Gold Necklace and Earring Sets', 'Bridal Jewellery', 'Bridal', 'bjw-gold-necklace-earring-sets.webp', 'Women'),
+    ('BJW-G-REF-225', 'Long Beaded Ball Necklace', 'Necklaces', 'Traditional', 'bjw-gold-beaded-ball-necklace.webp', 'Women'),
+    ('BJW-G-REF-226', 'Ruby Disc Necklace', 'Necklaces', 'Traditional', 'bjw-gold-ruby-disc-necklace.webp', 'Women'),
+    ('BJW-G-REF-227', 'Fine Rope Chain', 'Chains', 'Classic', 'bjw-gold-light-rope-chain.webp', 'Unisex'),
+    ('BJW-G-REF-228', 'Curb Link Chain', 'Chains', 'Classic', 'bjw-gold-curb-link-chain.webp', 'Men'),
+    ('BJW-G-REF-229', 'Floral Temple Bridal Set', 'Bridal Jewellery', 'Bridal', 'bjw-gold-floral-temple-bridal-set.webp', 'Women'),
+    ('BJW-G-REF-230', 'Lakshmi Temple Bangles', 'Bangles', 'Traditional', 'bjw-gold-lakshmi-temple-bangles.webp', 'Women'),
+    ('BJW-G-REF-231', 'Colourstone Temple Bangles', 'Bangles', 'Traditional', 'bjw-gold-colourstone-temple-bangles.webp', 'Women'),
 ]
 
 def public(doc):
@@ -323,6 +358,8 @@ async def featured():
 async def catalogue_item(slug:str):
     item=await db.catalogue_items.find_one({'slug':slug,'published':True,'deleted_at':None})
     if not item: raise HTTPException(404,'Design not found')
+    category = await db.categories.find_one({'_id': ObjectId(item['category_id'])}) if ObjectId.is_valid(item.get('category_id', '')) else None
+    item['category_name'] = category.get('name') if category else ''
     return public(item)
 
 @app.get('/api/categories')

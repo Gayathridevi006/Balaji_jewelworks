@@ -104,7 +104,7 @@ export default function Catalogue() {
     return <Link key={item.id} href={`/catalogue/${item.slug}`} className="card">
       <img className="product-img" src={imageUrl(item.primary_image || item.images?.[0]?.url)} alt={item.name} />
       <div style={{ padding: 14 }}>
-        <div style={{ fontSize: 10, color: '#a77b35', letterSpacing: '.12em' }}>{item.metal_type} · {item.design_code}</div>
+        <div style={{ fontSize: 10, color: '#a77b35', letterSpacing: '.12em' }}>{item.metal_type} · {cats.find((entry) => entry.id === item.category_id)?.name || item.category_name || 'Design'} · {item.design_code}</div>
         <div className="serif" style={{ fontSize: 18, marginTop: 7 }}>{item.name}</div>
         {item.weight_range && <div style={{ fontSize: 12, color: '#746d63', marginTop: 6 }}>{item.weight_range}</div>}
       </div>
