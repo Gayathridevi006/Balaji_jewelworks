@@ -81,6 +81,8 @@ WORKSHOP_PHOTO_SAMPLES = [
     ('BJW-S-REF-130', 'Engraved Silver Kids Kada', 'Kids Jewellery', 'Traditional', 'bjw-kids-kada-08.webp', 'Silver'),
     ('BJW-S-REF-131', 'Multicolour Stone Kids Kadas', 'Kids Jewellery', 'Contemporary', 'bjw-kids-kada-09.webp', 'Silver'),
     ('BJW-G-REF-132', 'Leaf Motif Open Kids Kada', 'Kids Jewellery', 'Traditional', 'bjw-kids-kada-10.webp'),
+    ('BJW-G-REF-133', 'Pearl Grapevine Earrings', 'Earrings', 'Traditional', 'bjw-gold-grape-earrings-01.webp'),
+    ('BJW-G-REF-134', 'Grape Cluster Drop Earrings', 'Earrings', 'Traditional', 'bjw-gold-grape-earrings-02.webp'),
 ]
 
 def public(doc):
