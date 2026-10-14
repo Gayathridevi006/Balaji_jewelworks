@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, ArrowUpRight, MessageCircle, MoveRight } from 'lucide-react';
 import { imageUrl, whatsappLink } from '../lib/api';
-import { providedPhotoDesigns } from '../lib/sample-catalogue';
+import { sampleDesigns } from '../lib/sample-catalogue';
 import { standardCategoryNames } from '../lib/categories';
 
 type Item = {
@@ -18,20 +18,20 @@ type Item = {
 };
 
 const latestGoldDesignCodes = [
-  'BJW-G-REF-104', // Bangles
-  'BJW-G-REF-113', // Chains
-  'BJW-G-REF-109', // Necklaces
-  'BJW-G-REF-133', // Earrings
-  'BJW-G-REF-114', // Bracelets
-  'BJW-G-REF-112', // Jhumkas
-  'BJW-G-REF-123', // Kids Jewellery
-  'BJW-G-REF-117', // Thali
+  'BJW-G-001', // Necklaces
+  'BJW-G-002', // Jhumkas
+  'BJW-G-003', // Bangles
+  'BJW-G-CAT-001', // Chains
+  'BJW-G-CAT-002', // Earrings
+  'BJW-G-CAT-003', // Bracelets
+  'BJW-G-CAT-004', // Finger Rings
+  'BJW-G-CAT-005', // Pendants
 ];
 
 function getItems(): Item[] {
   return latestGoldDesignCodes
-    .map((code) => providedPhotoDesigns.find((item) => item.design_code === code))
-    .filter((item): item is (typeof providedPhotoDesigns)[number] => Boolean(item));
+    .map((code) => sampleDesigns.find((item) => item.design_code === code))
+    .filter((item): item is (typeof sampleDesigns)[number] => Boolean(item));
 }
 
 const collectionTiles = [
