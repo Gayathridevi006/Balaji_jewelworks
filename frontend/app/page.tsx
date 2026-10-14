@@ -119,7 +119,10 @@ export default async function Home() {
             <p style={{ color: '#655e54', lineHeight: 1.9, fontSize: 14 }}>At Balaji Jewellery Works, every piece begins with a conversation. Select a design, tell us what you have in mind, and our goldsmith will work with you on the details.</p>
             <Link href="/contact" className="btn btn-light" style={{ marginTop: 14 }}>Meet your goldsmith <ArrowRight size={15} /></Link>
           </div>
-          <img src="/products/bjw-g-003-enamel-bangles.webp" alt="Illustrative engraved gold bangles" style={{ width: '100%', maxHeight: 390, objectFit: 'cover' }} />
+          <figure style={{ margin: 0 }}>
+            <img src="/products/goldsmith-at-work.webp" alt="Illustrative scene of a goldsmith carefully soldering a gold ornament at a jewellery workbench" style={{ display: 'block', width: '100%', maxHeight: 390, objectFit: 'cover' }} />
+            <figcaption style={{ paddingTop: 7, color: '#746d63', fontSize: 11 }}>Illustrative image of traditional jewellery making.</figcaption>
+          </figure>
         </div>
       </section>
 
