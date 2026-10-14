@@ -120,6 +120,16 @@ async def lifespan(app: FastAPI):
                     {'category_id': str(legacy['_id']), 'metal_type': metal},
                     {'$set': {'category_id': str(specific['_id'])}},
                 )
+    earrings_category = await db.categories.find_one({'name': 'Earrings', 'metal_type': 'Gold', 'active': True})
+    if earrings_category:
+        await db.catalogue_items.update_one(
+            {'design_code': 'BJW-G-REF-101'},
+            {'$set': {
+                'name': 'Layered Ribbed Earrings',
+                'category_id': str(earrings_category['_id']),
+                'updated_at': datetime.now(timezone.utc),
+            }},
+        )
     image_base = 'https://balaji-jewelworks.ms-gayathridevi6.workers.dev/products/'
     for metal in ('Gold', 'Silver'):
         for order, name in enumerate(STANDARD_CATEGORY_NAMES):

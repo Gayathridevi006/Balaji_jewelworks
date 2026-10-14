@@ -46,6 +46,7 @@ export default function Catalogue() {
   }, [categoriesLoaded, cats, metal, requestedCategoryName, urlCategoryApplied]);
 
   useEffect(() => {
+    let active = true;
     const query = new URLSearchParams();
     if (metal) query.set('metal_type', metal);
     if (category) query.set('category_id', category);
@@ -60,22 +61,32 @@ export default function Catalogue() {
       search,
     });
 
-    api<{ items: Item[] }>(`/catalogue?${query}`)
-      .then((response) => {
-        const categoryName = cats.find((entry) => entry.id === category)?.name;
-        const photoSamples = providedPhotoDesigns.filter((item) =>
-          (!metal || item.metal_type === metal) &&
-          (!category || item.category_name === categoryName) &&
-          (!style || item.style === style) &&
-          (!search || `${item.name} ${item.design_code}`.toLowerCase().includes(search.trim().toLowerCase())),
-        );
-        const rows = response.items.length ? response.items : fallback();
-        const uniqueRows = [...photoSamples, ...rows].filter((item, index, all) =>
-          all.findIndex((candidate) => candidate.design_code === item.design_code) === index,
-        );
-        setItems(sortCatalogueDesigns(uniqueRows));
-      })
-      .catch(() => setItems(fallback()));
+    setItems(sortCatalogueDesigns(fallback()));
+    const timeout = window.setTimeout(() => {
+      api<{ items: Item[] }>(`/catalogue?${query}`)
+        .then((response) => {
+          if (!active) return;
+          const categoryName = cats.find((entry) => entry.id === category)?.name;
+          const photoSamples = providedPhotoDesigns.filter((item) =>
+            (!metal || item.metal_type === metal) &&
+            (!category || item.category_name === categoryName) &&
+            (!style || item.style === style) &&
+            (!search || `${item.name} ${item.design_code}`.toLowerCase().includes(search.trim().toLowerCase())),
+          );
+          const uniqueRows = [...photoSamples, ...response.items].filter((item, index, all) =>
+            all.findIndex((candidate) => candidate.design_code === item.design_code) === index,
+          );
+          setItems(sortCatalogueDesigns(uniqueRows));
+        })
+        .catch(() => {
+          if (active) setItems(sortCatalogueDesigns(fallback()));
+        });
+    }, search.trim() ? 250 : 0);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeout);
+    };
   }, [metal, category, style, search, cats]);
 
   const visibleItems = sortCatalogueDesigns(items);
