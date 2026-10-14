@@ -220,7 +220,18 @@ export const providedPhotoDesigns: CatalogueDesign[] = [
   design('BJW-G-REF-114', 'Medallion Panel Cuff', 'gold-medallion-panel-cuff-bjw-g-ref-114', 'Gold', 'gold-bracelets', 'Bracelets', 'Contemporary', 'Confirm with workshop', '/products/bjw-user-gold-medallion-cuff.webp', 'Hinged cuff bracelet with a row of patterned medallion panels. Confirm metal, purity, weight, and availability with the workshop.'),
 ];
 
-sampleDesigns.push(...extraSampleDesigns, ...providedPhotoDesigns);
+const newWorkshopDesigns: CatalogueDesign[] = [
+  design('BJW-G-REF-135', 'Pearl Crescent Earrings', 'gold-pearl-crescent-earrings-bjw-g-ref-135', 'Gold', 'gold-earrings', 'Earrings', 'Traditional', 'Confirm with workshop', '/products/bjw-gold-pearl-crescent-earrings.webp', 'Gold-tone crescent earrings with pearl-style accents. Supplied photo is a design reference; confirm metal, purity, stone details, weight, and availability with the workshop.'),
+  design('BJW-G-REF-136', 'Crystal Cascade Earrings', 'gold-crystal-cascade-earrings-bjw-g-ref-136', 'Gold', 'gold-earrings', 'Earrings', 'Contemporary', 'Confirm with workshop', '/products/bjw-gold-crystal-cascade-earrings.webp', 'Gold-tone earrings with a crystal cluster and cascading drops. Supplied photos are design references; confirm metal, purity, stone details, weight, and availability with the workshop.'),
+  design('BJW-G-REF-137', 'Temple Peacock Bangles', 'gold-temple-peacock-bangles-bjw-g-ref-137', 'Gold', 'gold-bangles', 'Bangles', 'Traditional', 'Confirm with workshop', '/products/bjw-gold-temple-peacock-bangles.webp', 'Pair of ornate gold-tone temple bangles with peacock motifs and red accents. Supplied photo is a design reference; confirm metal, purity, size, weight, and availability with the workshop.'),
+];
+newWorkshopDesigns.find((item) => item.design_code === 'BJW-G-REF-136')?.images.push({
+  id: 'bjw-g-ref-136-image-2',
+  url: '/products/bjw-gold-crystal-cascade-earrings-detail.webp',
+  alt: 'Crystal Cascade Earrings, alternate view',
+});
+
+sampleDesigns.push(...extraSampleDesigns, ...providedPhotoDesigns, ...newWorkshopDesigns);
 
 export const sampleCategories: CatalogueCategory[] = (['Gold', 'Silver'] as const).flatMap((metal) =>
   standardCategoryNames.map((name, index) => ({

@@ -49,7 +49,7 @@ SAMPLE_IMAGE_FILES = {
 }
 
 WORKSHOP_PHOTO_SAMPLES = [
-    ('BJW-G-REF-101', 'Layered Ribbed Cuffs', 'Bangles', 'Classic', 'bjw-user-gold-ribbed-cuffs.webp'),
+    ('BJW-G-REF-101', 'Layered Ribbed Earrings', 'Earrings', 'Classic', 'bjw-user-gold-ribbed-cuffs.webp'),
     ('BJW-G-REF-102', 'Colourstone Blossom Studs', 'Earrings', 'Traditional', 'bjw-user-gold-colourstone-studs.webp'),
     ('BJW-G-REF-103', 'Triple Petal Studs', 'Earrings', 'Contemporary', 'bjw-user-gold-triple-petal-studs.webp'),
     ('BJW-G-REF-104', 'Temple Motif Hoop Bangles', 'Bangles', 'Traditional', 'bjw-user-gold-temple-hoop-bangles.webp'),
@@ -83,6 +83,9 @@ WORKSHOP_PHOTO_SAMPLES = [
     ('BJW-G-REF-132', 'Leaf Motif Open Kids Kada', 'Kids Jewellery', 'Traditional', 'bjw-kids-kada-10.webp'),
     ('BJW-G-REF-133', 'Pearl Grapevine Earrings', 'Earrings', 'Traditional', 'bjw-gold-grape-earrings-01.webp'),
     ('BJW-G-REF-134', 'Grape Cluster Drop Earrings', 'Earrings', 'Traditional', 'bjw-gold-grape-earrings-02.webp'),
+    ('BJW-G-REF-135', 'Pearl Crescent Earrings', 'Earrings', 'Traditional', 'bjw-gold-pearl-crescent-earrings.webp'),
+    ('BJW-G-REF-136', 'Crystal Cascade Earrings', 'Earrings', 'Contemporary', 'bjw-gold-crystal-cascade-earrings.webp'),
+    ('BJW-G-REF-137', 'Temple Peacock Bangles', 'Bangles', 'Traditional', 'bjw-gold-temple-peacock-bangles.webp'),
 ]
 
 def public(doc):
@@ -206,6 +209,17 @@ async def lifespan(app: FastAPI):
             'updated_at': now,
             'deleted_at': None,
         })
+    cascade_primary = image_base + 'bjw-gold-crystal-cascade-earrings.webp'
+    await db.catalogue_items.update_one(
+        {'design_code': 'BJW-G-REF-136'},
+        {'$set': {
+            'primary_image': cascade_primary,
+            'images': [
+                {'id': 'bjw-g-ref-136-image', 'url': cascade_primary, 'alt': 'Crystal Cascade Earrings'},
+                {'id': 'bjw-g-ref-136-image-2', 'url': image_base + 'bjw-gold-crystal-cascade-earrings-detail.webp', 'alt': 'Crystal Cascade Earrings, alternate view'},
+            ],
+        }},
+    )
     await db.staged_imports.create_index([('review_status',1),('created_at',-1)])
     if settings.bootstrap_admin_email and settings.bootstrap_admin_password:
         await db.admin_users.update_one({'email':settings.bootstrap_admin_email.lower()},{'$setOnInsert':{'email':settings.bootstrap_admin_email.lower(),'password_hash':hash_password(settings.bootstrap_admin_password),'role':'admin','created_at':datetime.now(timezone.utc)}},upsert=True)
