@@ -107,6 +107,12 @@ WORKSHOP_PHOTO_SAMPLES = [
     ('BJW-G-REF-156', 'Diamond Band Ring', 'Finger Rings', 'Classic', 'bjw-gold-diamond-band-ring.webp'),
     ('BJW-G-REF-157', 'Pearl Knot Drop Earrings', 'Earrings', 'Classic', 'bjw-gold-pearl-knot-drop-earrings.webp'),
     ('BJW-G-REF-158', 'Diamond Panel Open Kada', 'Bangles', 'Contemporary', 'bjw-gold-diamond-panel-cuff.webp'),
+    ('BJW-G-REF-159', 'Speckled Long Drop Earrings', 'Earrings', 'Contemporary', 'bjw-gold-speckled-drop-earrings.webp'),
+    ('BJW-G-REF-160', 'Textured Rectangle Stud Earrings', 'Earrings', 'Classic', 'bjw-gold-textured-rectangle-studs.webp'),
+    ('BJW-G-REF-161', 'Openwork Hexagon Ring', 'Finger Rings', 'Contemporary', 'bjw-gold-openwork-hexagon-ring.webp'),
+    ('BJW-G-REF-162', 'Leaf Openwork Ring', 'Finger Rings', 'Contemporary', 'bjw-gold-leaf-openwork-ring.webp'),
+    ('BJW-G-REF-163', 'Pearl Centre Flower Ring', 'Finger Rings', 'Classic', 'bjw-gold-pearl-flower-ring.webp'),
+    ('BJW-G-REF-164', 'Braided Leaf Ring', 'Finger Rings', 'Classic', 'bjw-gold-braided-leaf-ring.webp'),
 ]
 
 def public(doc):
