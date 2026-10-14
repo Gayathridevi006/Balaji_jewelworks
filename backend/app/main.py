@@ -88,6 +88,12 @@ WORKSHOP_PHOTO_SAMPLES = [
     ('BJW-G-REF-137', 'Temple Peacock Bangles', 'Bangles', 'Traditional', 'bjw-gold-temple-peacock-bangles.webp'),
     ('BJW-G-REF-138', 'Ornate Rope Chain', 'Chains', 'Traditional', 'bjw-gold-ornate-rope-chain.webp'),
     ('BJW-G-REF-139', 'Multicolour Bead Necklace', 'Necklaces', 'Traditional', 'bjw-gold-multicolour-bead-necklace.webp'),
+    ('BJW-G-REF-140', 'Punjabi Wave Open Kada', 'Bangles', 'Traditional', 'bjw-gold-punjabi-wave-kada.webp'),
+    ('BJW-G-REF-141', 'Twist Ribbon Kada', 'Bangles', 'Contemporary', 'bjw-gold-twist-band-kada.webp'),
+    ('BJW-G-REF-142', 'Diamond Lattice Kada', 'Bangles', 'Classic', 'bjw-gold-diamond-grid-kada.webp'),
+    ('BJW-G-REF-143', 'Geometric Punjabi Kada', 'Bangles', 'Traditional', 'bjw-gold-geometric-punjabi-kada.webp'),
+    ('BJW-G-REF-144', 'Diagonal Cut Kada', 'Bangles', 'Classic', 'bjw-gold-crosshatch-kada.webp'),
+    ('BJW-G-REF-145', 'Diamond Crosshatch Kada', 'Bangles', 'Contemporary', 'bjw-gold-lattice-open-kada.webp'),
 ]
 
 def public(doc):
