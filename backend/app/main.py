@@ -100,6 +100,13 @@ WORKSHOP_PHOTO_SAMPLES = [
     ('BJW-G-REF-149', 'Heart Drop Motif Necklace', 'Necklaces', 'Traditional', 'bjw-gold-heart-drop-necklace.webp'),
     ('BJW-G-REF-150', 'Fan Motif Necklace', 'Necklaces', 'Classic', 'bjw-gold-fan-motif-necklace.webp'),
     ('BJW-G-REF-151', 'Floral Front Necklace', 'Necklaces', 'Traditional', 'bjw-gold-floral-front-necklace.webp'),
+    ('BJW-G-REF-152', 'Halo Circle Drop Earrings', 'Earrings', 'Contemporary', 'bjw-gold-halo-drop-earrings.webp'),
+    ('BJW-G-REF-153', 'Ganesha Gold Pendant', 'Pendants', 'Traditional', 'bjw-gold-ganesha-pendant.webp'),
+    ('BJW-G-REF-154', 'Filigree Chandbali Earrings', 'Earrings', 'Traditional', 'bjw-gold-filigree-chandbali-earrings.webp'),
+    ('BJW-G-REF-155', 'Floral Lotus Pendant Necklace', 'Pendants', 'Contemporary', 'bjw-gold-floral-lotus-pendant.webp'),
+    ('BJW-G-REF-156', 'Diamond Band Ring', 'Finger Rings', 'Classic', 'bjw-gold-diamond-band-ring.webp'),
+    ('BJW-G-REF-157', 'Pearl Knot Drop Earrings', 'Earrings', 'Classic', 'bjw-gold-pearl-knot-drop-earrings.webp'),
+    ('BJW-G-REF-158', 'Diamond Panel Open Kada', 'Bangles', 'Contemporary', 'bjw-gold-diamond-panel-cuff.webp'),
 ]
 
 def public(doc):
