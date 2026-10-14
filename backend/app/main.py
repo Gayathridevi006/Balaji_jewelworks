@@ -86,6 +86,8 @@ WORKSHOP_PHOTO_SAMPLES = [
     ('BJW-G-REF-135', 'Pearl Crescent Earrings', 'Earrings', 'Traditional', 'bjw-gold-pearl-crescent-earrings.webp'),
     ('BJW-G-REF-136', 'Crystal Cascade Earrings', 'Earrings', 'Contemporary', 'bjw-gold-crystal-cascade-earrings.webp'),
     ('BJW-G-REF-137', 'Temple Peacock Bangles', 'Bangles', 'Traditional', 'bjw-gold-temple-peacock-bangles.webp'),
+    ('BJW-G-REF-138', 'Ornate Rope Chain', 'Chains', 'Traditional', 'bjw-gold-ornate-rope-chain.webp'),
+    ('BJW-G-REF-139', 'Multicolour Bead Necklace', 'Necklaces', 'Traditional', 'bjw-gold-multicolour-bead-necklace.webp'),
 ]
 
 def public(doc):
