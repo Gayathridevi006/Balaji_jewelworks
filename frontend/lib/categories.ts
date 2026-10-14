@@ -22,6 +22,7 @@ export const standardCategoryNames = [
   'Mangalsutra',
   'Bridal Jewellery',
   'Kids Jewellery',
+  'Thali',
   'Other',
 ] as const;
 

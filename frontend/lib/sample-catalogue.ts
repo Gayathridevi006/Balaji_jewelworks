@@ -114,6 +114,7 @@ const sampleWeights: Record<string, { Gold: string; Silver: string }> = {
   Mangalsutra: { Gold: 'Approx. 15–25 g', Silver: 'Approx. 20–35 g' },
   'Bridal Jewellery': { Gold: 'Approx. 80–120 g per set', Silver: 'Approx. 120–180 g per set' },
   'Kids Jewellery': { Gold: 'Approx. 8–14 g per set', Silver: 'Approx. 12–20 g per set' },
+  Thali: { Gold: 'Confirm with workshop', Silver: 'Confirm with workshop' },
   Other: { Gold: 'Approx. 5–10 g', Silver: 'Approx. 8–15 g' },
 };
 
@@ -134,6 +135,7 @@ const sampleImages: Record<'Gold' | 'Silver', Record<string, string>> = {
     Mangalsutra: '/products/bjw-gold-mangalsutra.webp',
     'Bridal Jewellery': '/products/bjw-gold-bridal-jewellery.webp',
     'Kids Jewellery': '/products/bjw-gold-kids-jewellery.webp',
+    Thali: '/products/bjw-gold-thali-01.webp',
     Other: '/products/bjw-gold-other.webp',
   },
   Silver: {
@@ -152,6 +154,7 @@ const sampleImages: Record<'Gold' | 'Silver', Record<string, string>> = {
     Mangalsutra: '/products/bjw-silver-mangalsutra.webp',
     'Bridal Jewellery': '/products/bjw-silver-bridal-jewellery.webp',
     'Kids Jewellery': '/products/bjw-silver-kids-jewellery.webp',
+    Thali: '/products/bjw-gold-thali-01.webp',
     Other: '/products/bjw-silver-other.webp',
   },
 };
@@ -161,7 +164,7 @@ const sampleImageFor = (metal: 'Gold' | 'Silver', category: string) =>
 
 const extraSampleDesigns: CatalogueDesign[] = (['Gold', 'Silver'] as const).flatMap((metal) =>
   standardCategoryNames
-    .filter((category) => !sampleDesigns.some((item) => item.metal_type === metal && item.category_name === category))
+    .filter((category) => category !== 'Thali' && !sampleDesigns.some((item) => item.metal_type === metal && item.category_name === category))
     .map((category, index) => {
       const code = `BJW-${metal === 'Gold' ? 'G' : 'S'}-CAT-${String(index + 1).padStart(3, '0')}`;
       const slug = `${metal.toLowerCase()}-${category.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${code.toLowerCase()}`;
@@ -181,6 +184,12 @@ const extraSampleDesigns: CatalogueDesign[] = (['Gold', 'Silver'] as const).flat
 );
 
 export const providedPhotoDesigns: CatalogueDesign[] = [
+  design('BJW-G-REF-117', 'Classic Line Thali', 'gold-classic-line-thali-bjw-g-ref-117', 'Gold', 'gold-thali', 'Thali', 'Traditional', 'Confirm with workshop', '/products/bjw-gold-thali-01.webp', 'Gold thali design with a fine central line and beaded border. Photo is a design reference; confirm gold purity, weight, and availability with the workshop.'),
+  design('BJW-G-REF-118', 'Floral Vine Thali', 'gold-floral-vine-thali-bjw-g-ref-118', 'Gold', 'gold-thali', 'Thali', 'Traditional', 'Confirm with workshop', '/products/bjw-gold-thali-02.webp', 'Gold thali design with a floral top and scrolling vine engraving. Confirm gold purity, weight, and availability with the workshop.'),
+  design('BJW-G-REF-119', 'Geometric Band Thali', 'gold-geometric-band-thali-bjw-g-ref-119', 'Gold', 'gold-thali', 'Thali', 'Classic', 'Confirm with workshop', '/products/bjw-gold-thali-03.webp', 'Gold thali design with a rounded crown and horizontal geometric bands. Confirm gold purity, weight, and availability with the workshop.'),
+  design('BJW-G-REF-120', 'Temple Emblem Thali', 'gold-temple-emblem-thali-bjw-g-ref-120', 'Gold', 'gold-thali', 'Thali', 'Traditional', 'Confirm with workshop', '/products/bjw-gold-thali-04.webp', 'Gold thali design with a darkened central temple emblem and fine beaded edging. Confirm gold purity, weight, and availability with the workshop.'),
+  design('BJW-G-REF-121', 'Flower Crest Thali', 'gold-flower-crest-thali-bjw-g-ref-121', 'Gold', 'gold-thali', 'Thali', 'Traditional', 'Confirm with workshop', '/products/bjw-gold-thali-05.webp', 'Gold thali design with a flower crest, scrolling details, and a bright central accent. Confirm gold purity, stone, weight, and availability with the workshop.'),
+  design('BJW-G-REF-122', 'Beaded Temple Pair Thali', 'gold-beaded-temple-pair-thali-bjw-g-ref-122', 'Gold', 'gold-thali', 'Thali', 'Traditional', 'Confirm with workshop', '/products/bjw-gold-thali-06.webp', 'Matching pair of gold thali designs with a raised temple motif and beaded borders. Confirm gold purity, weight, and availability with the workshop.'),
   design('BJW-G-REF-101', 'Layered Ribbed Cuffs', 'gold-layered-ribbed-cuffs-bjw-g-ref-101', 'Gold', 'gold-bangles', 'Bangles', 'Classic', 'Confirm with workshop', '/products/bjw-user-gold-ribbed-cuffs.webp', 'Gold-tone cuff bangle reference photo. Confirm metal, purity, weight, and availability with the workshop.'),
   design('BJW-G-REF-102', 'Colourstone Blossom Studs', 'gold-colourstone-blossom-studs-bjw-g-ref-102', 'Gold', 'gold-earrings', 'Earrings', 'Traditional', 'Confirm with workshop', '/products/bjw-user-gold-colourstone-studs.webp', 'Floral studs with colourstone accents. Photo is for design reference; confirm metal, stones, weight, and availability with the workshop.'),
   design('BJW-G-REF-103', 'Triple Petal Studs', 'gold-triple-petal-studs-bjw-g-ref-103', 'Gold', 'gold-earrings', 'Earrings', 'Contemporary', 'Confirm with workshop', '/products/bjw-user-gold-triple-petal-studs.webp', 'Small looped-petal stud earrings. Photo is for design reference; confirm metal, weight, and availability with the workshop.'),

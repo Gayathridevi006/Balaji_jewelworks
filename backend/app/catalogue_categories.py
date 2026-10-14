@@ -14,6 +14,7 @@ STANDARD_CATEGORY_NAMES = (
     'Mangalsutra',
     'Bridal Jewellery',
     'Kids Jewellery',
+    'Thali',
     'Other',
 )
 
@@ -33,5 +34,6 @@ SAMPLE_CATEGORY_WEIGHTS = {
     'Mangalsutra': {'Gold': 'Approx. 15–25 g', 'Silver': 'Approx. 20–35 g'},
     'Bridal Jewellery': {'Gold': 'Approx. 80–120 g per set', 'Silver': 'Approx. 120–180 g per set'},
     'Kids Jewellery': {'Gold': 'Approx. 8–14 g per set', 'Silver': 'Approx. 12–20 g per set'},
+    'Thali': {'Gold': 'Confirm with workshop', 'Silver': 'Confirm with workshop'},
     'Other': {'Gold': 'Approx. 5–10 g', 'Silver': 'Approx. 8–15 g'},
 }

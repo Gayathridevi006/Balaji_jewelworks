@@ -34,7 +34,7 @@ SAMPLE_IMAGE_FILES = {
         'Nose Pins': 'bjw-gold-nose-pins.webp', 'Toe Rings': 'bjw-gold-toe-rings.webp',
         'Jhumkas': 'bjw-g-002-pearl-jhumkas.webp', 'Harams': 'bjw-gold-harams.webp',
         'Mangalsutra': 'bjw-gold-mangalsutra.webp', 'Bridal Jewellery': 'bjw-gold-bridal-jewellery.webp',
-        'Kids Jewellery': 'bjw-gold-kids-jewellery.webp', 'Other': 'bjw-gold-other.webp',
+        'Kids Jewellery': 'bjw-gold-kids-jewellery.webp', 'Thali': 'bjw-gold-thali-01.webp', 'Other': 'bjw-gold-other.webp',
     },
     'Silver': {
         'Bangles': 'bjw-silver-bangles.webp', 'Chains': 'bjw-silver-chains.webp',
@@ -44,7 +44,7 @@ SAMPLE_IMAGE_FILES = {
         'Nose Pins': 'bjw-silver-nose-pins.webp', 'Toe Rings': 'bjw-silver-toe-rings.webp',
         'Jhumkas': 'bjw-silver-jhumkas.webp', 'Harams': 'bjw-silver-harams.webp',
         'Mangalsutra': 'bjw-silver-mangalsutra.webp', 'Bridal Jewellery': 'bjw-silver-bridal-jewellery.webp',
-        'Kids Jewellery': 'bjw-silver-kids-jewellery.webp', 'Other': 'bjw-silver-other.webp',
+        'Kids Jewellery': 'bjw-silver-kids-jewellery.webp', 'Thali': 'bjw-silver-other.webp', 'Other': 'bjw-silver-other.webp',
     },
 }
 
@@ -65,6 +65,12 @@ WORKSHOP_PHOTO_SAMPLES = [
     ('BJW-G-REF-116', 'Engraved Dome Jhumkas', 'Jhumkas', 'Traditional', 'bjw-user-gold-engraved-dome-jhumkas.webp'),
     ('BJW-G-REF-113', 'Textured Rope Chain', 'Chains', 'Classic', 'bjw-user-gold-rope-chain.webp'),
     ('BJW-G-REF-114', 'Medallion Panel Cuff', 'Bracelets', 'Contemporary', 'bjw-user-gold-medallion-cuff.webp'),
+    ('BJW-G-REF-117', 'Classic Line Thali', 'Thali', 'Traditional', 'bjw-gold-thali-01.webp'),
+    ('BJW-G-REF-118', 'Floral Vine Thali', 'Thali', 'Traditional', 'bjw-gold-thali-02.webp'),
+    ('BJW-G-REF-119', 'Geometric Band Thali', 'Thali', 'Classic', 'bjw-gold-thali-03.webp'),
+    ('BJW-G-REF-120', 'Temple Emblem Thali', 'Thali', 'Traditional', 'bjw-gold-thali-04.webp'),
+    ('BJW-G-REF-121', 'Flower Crest Thali', 'Thali', 'Traditional', 'bjw-gold-thali-05.webp'),
+    ('BJW-G-REF-122', 'Beaded Temple Pair Thali', 'Thali', 'Traditional', 'bjw-gold-thali-06.webp'),
 ]
 
 def public(doc):
@@ -115,6 +121,9 @@ async def lifespan(app: FastAPI):
                     'updated_at': datetime.now(timezone.utc),
                 }},
             )
+            # Thali uses the supplied reference designs below rather than a generic category placeholder.
+            if name == 'Thali':
+                continue
             if await db.catalogue_items.find_one({
                 'category_id': str(category['_id']), 'metal_type': metal, 'deleted_at': None,
             }):
