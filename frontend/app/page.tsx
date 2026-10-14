@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, ArrowUpRight, MessageCircle, MoveRight } from 'lucide-react';
-import { api, imageUrl, whatsappLink } from '../lib/api';
-import { providedPhotoDesigns, sampleDesigns } from '../lib/sample-catalogue';
+import { imageUrl, whatsappLink } from '../lib/api';
+import { providedPhotoDesigns } from '../lib/sample-catalogue';
 import { standardCategoryNames } from '../lib/categories';
 
 type Item = {
@@ -10,22 +10,28 @@ type Item = {
   design_code: string;
   metal_type: string;
   category_id: string;
+  category_name?: string;
   slug: string;
   weight_range?: string;
   primary_image?: string;
   images?: { url: string }[];
 };
 
-async function getItems(): Promise<Item[]> {
-  try {
-    const response = await api<{ items: Item[] }>('/catalogue?limit=8');
-    if (!response.items.length) return sampleDesigns.slice(-8).reverse();
-    return [...providedPhotoDesigns.slice().reverse(), ...response.items]
-      .filter((item, index, all) => all.findIndex((candidate) => candidate.design_code === item.design_code) === index)
-      .slice(0, 8);
-  } catch {
-    return sampleDesigns.slice(-8).reverse();
-  }
+const latestGoldDesignCodes = [
+  'BJW-G-REF-104', // Bangles
+  'BJW-G-REF-113', // Chains
+  'BJW-G-REF-109', // Necklaces
+  'BJW-G-REF-133', // Earrings
+  'BJW-G-REF-114', // Bracelets
+  'BJW-G-REF-112', // Jhumkas
+  'BJW-G-REF-123', // Kids Jewellery
+  'BJW-G-REF-117', // Thali
+];
+
+function getItems(): Item[] {
+  return latestGoldDesignCodes
+    .map((code) => providedPhotoDesigns.find((item) => item.design_code === code))
+    .filter((item): item is (typeof providedPhotoDesigns)[number] => Boolean(item));
 }
 
 const collectionTiles = [
@@ -80,14 +86,14 @@ export default async function Home() {
           <div>
             <div className="eyebrow">Selected for you</div>
             <h2 className="serif" style={{ fontWeight: 400, fontSize: 38, margin: '12px 0 0' }}>Latest designs</h2>
-            <p style={{ fontSize: 12, color: '#746d63', margin: '8px 0 0' }}>8 most recently added designs · weights are estimates</p>
+            <p style={{ fontSize: 12, color: '#746d63', margin: '8px 0 0' }}>Eight gold designs, each from a different category</p>
           </div>
           <Link href="/catalogue" style={{ fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>View all <MoveRight size={15} style={{ verticalAlign: 'middle' }} /></Link>
         </div>
         {items.length ? <div className="grid-products">{items.map((item) => <Link key={item.id} href={`/catalogue/${item.slug}`} className="card">
           <img className="product-img" src={imageUrl(item.primary_image || item.images?.[0]?.url)} alt={item.name} />
           <div style={{ padding: 14 }}>
-            <div style={{ fontSize: 10, color: '#a77b35', letterSpacing: '.12em' }}>{item.metal_type} · {item.design_code}</div>
+            <div style={{ fontSize: 10, color: '#a77b35', letterSpacing: '.12em' }}>{item.metal_type} · {item.category_name || item.design_code}</div>
             <div className="serif" style={{ fontSize: 18, marginTop: 7 }}>{item.name}</div>
             {item.weight_range && <div style={{ fontSize: 12, color: '#746d63', marginTop: 6 }}>{item.weight_range}</div>}
           </div>
@@ -146,6 +152,7 @@ export default async function Home() {
         <div className="card" style={{ maxWidth: 860, margin: '22px auto 0', padding: '20px 24px', borderColor: '#d8c8ad', background: '#fbf8f1', textAlign: 'center' }}>
           <div className="eyebrow">A clear promise with every custom order</div>
           <p style={{ color: '#4f473b', lineHeight: 1.8, margin: '8px 0 0' }}>Every customised gold or silver order comes with its applicable item hallmark and purity details, so you can feel confident about what you receive.</p>
+          <p style={{ color: '#746d63', fontSize: 13, lineHeight: 1.7, margin: '8px 0 0' }}>Custom orders typically take 7–30 days. We’ll confirm the delivery timeline when you place your order.</p>
         </div>
       </section>
 
