@@ -128,6 +128,24 @@ WORKSHOP_PHOTO_SAMPLES = [
     ('BJW-G-REF-177', 'Pearl Cone Jhumkas', 'Jhumkas', 'Traditional', 'bjw-gold-pearl-cone-jhumkas.webp'),
     ('BJW-G-REF-178', 'Openwork Statement Ring', 'Finger Rings', 'Contemporary', 'bjw-gold-openwork-statement-ring.webp'),
     ('BJW-G-REF-179', 'Four Petal Stud Earrings', 'Earrings', 'Classic', 'bjw-gold-four-petal-stud-earrings.webp'),
+    ('BJW-G-REF-180', 'Double Row Diamond Ring', 'Finger Rings', 'Contemporary', 'bjw-gold-double-row-diamond-ring.webp', 'Women'),
+    ('BJW-G-REF-181', 'Floral Diamond Ring', 'Finger Rings', 'Classic', 'bjw-gold-floral-diamond-ring.webp', 'Women'),
+    ('BJW-G-REF-182', 'Pearl Leaf Drop Necklace', 'Necklaces', 'Contemporary', 'bjw-gold-pearl-leaf-pendant.webp', 'Women'),
+    ('BJW-G-REF-183', 'Two Tone Wave Ring', 'Finger Rings', 'Contemporary', 'bjw-gold-two-tone-wave-ring.webp', 'Women'),
+    ('BJW-G-REF-184', 'Cluster Diamond Stud Earrings', 'Earrings', 'Classic', 'bjw-gold-cluster-stud-earrings.webp', 'Women'),
+    ('BJW-G-REF-185', "Men's Rope Chain", 'Chains', 'Classic', 'bjw-gold-mens-rope-chain.webp', 'Men'),
+    ('BJW-G-REF-186', 'Modern Ring Duo', 'Finger Rings', 'Contemporary', 'bjw-gold-modern-ring-duo.webp', 'Women'),
+    ('BJW-G-REF-187', 'Ganesha Pendant Necklace', 'Necklaces', 'Traditional', 'bjw-gold-ganesha-pendant-necklace-model.webp', 'Women'),
+    ('BJW-G-REF-188', 'Fine Gold Chain', 'Chains', 'Classic', 'bjw-gold-fine-chain-lifestyle.webp', 'Women'),
+    ('BJW-G-REF-189', 'Floral Accent Ring', 'Finger Rings', 'Classic', 'bjw-gold-flower-ring-lifestyle.webp', 'Women'),
+    ('BJW-G-REF-190', 'Heart Row Ring', 'Finger Rings', 'Contemporary', 'bjw-gold-heart-row-ring.webp', 'Women'),
+    ('BJW-G-REF-191', 'Crescent Diamond Hoop Earrings', 'Earrings', 'Contemporary', 'bjw-gold-crescent-diamond-hoops.webp', 'Women'),
+    ('BJW-G-REF-192', 'Temple Pendant Necklace', 'Necklaces', 'Traditional', 'bjw-gold-temple-necklace-red.webp', 'Women'),
+    ('BJW-G-REF-193', 'Crosshatch Gold Bangle', 'Bangles', 'Classic', 'bjw-gold-crosshatch-bangle.webp', 'Women'),
+    ('BJW-G-REF-194', 'Leaf Drop Earrings', 'Earrings', 'Contemporary', 'bjw-gold-leaf-drop-earrings.webp', 'Women'),
+    ('BJW-G-REF-195', 'Pearl Lattice Drop Earrings', 'Earrings', 'Contemporary', 'bjw-gold-pearl-lattice-drop-earrings.webp', 'Women'),
+    ('BJW-G-REF-196', 'Feather Pearl Earrings', 'Earrings', 'Contemporary', 'bjw-gold-feather-pearl-earrings.webp', 'Women'),
+    ('BJW-G-REF-197', 'Diamond Halo Drop Earrings', 'Earrings', 'Classic', 'bjw-gold-diamond-hoop-drop-earrings.webp', 'Women'),
 ]
 
 def public(doc):
@@ -222,10 +240,11 @@ async def lifespan(app: FastAPI):
                 'updated_at': datetime.now(timezone.utc),
                 'deleted_at': None,
             })
-    for code, name, category_name, style, image_file, *metal_args in WORKSHOP_PHOTO_SAMPLES:
+    for code, name, category_name, style, image_file, *metadata in WORKSHOP_PHOTO_SAMPLES:
         if await db.catalogue_items.find_one({'design_code': code}):
             continue
-        metal = metal_args[0] if metal_args else 'Gold'
+        metal = next((value for value in metadata if value in ('Gold', 'Silver')), 'Gold')
+        audience = next((value for value in metadata if value in ('Men', 'Women', 'Unisex')), None)
         category = await db.categories.find_one({'name': category_name, 'metal_type': metal, 'active': True})
         if not category:
             continue
@@ -240,6 +259,7 @@ async def lifespan(app: FastAPI):
             'subcategory': '',
             'description': 'Photo supplied for design reference. Confirm metal, purity, exact weight, and availability with the workshop before ordering.',
             'style': style,
+            'audience': audience,
             'weight_range': 'Confirm with workshop',
             'featured': False,
             'published': True,

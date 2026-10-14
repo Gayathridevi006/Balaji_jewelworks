@@ -16,6 +16,7 @@ type Item = {
   design_code: string;
   metal_type: string;
   weight_range?: string;
+  audience?: 'Men' | 'Women' | 'Unisex';
   published: boolean;
   featured: boolean;
   sample?: boolean;
@@ -40,13 +41,14 @@ type DesignForm = {
   description: string;
   style: string;
   weight_range: string;
+  audience: '' | 'Men' | 'Women' | 'Unisex';
   featured: boolean;
   published: boolean;
 };
 
 const blankForm: DesignForm = {
   name: '', design_code: '', metal_type: 'Gold', category_id: '', subcategory: '',
-  description: '', style: 'Traditional', weight_range: '', featured: false, published: false,
+  description: '', style: 'Traditional', weight_range: '', audience: '', featured: false, published: false,
 };
 
 function apiConfigurationError() {
@@ -190,7 +192,7 @@ export default function Admin() {
       const response = await fetch(`${base}/admin/catalogue`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ ...form, published: false }),
+        body: JSON.stringify({ ...form, audience: form.audience || null, published: false }),
       });
       if (!response.ok) throw new Error(await responseError(response, 'Could not save the design. Check the design code and required fields.'));
       const newItem = await readJson<Item>(response, 'The server did not return the saved design.');
@@ -213,7 +215,7 @@ export default function Admin() {
         const publishResponse = await fetch(`${base}/admin/catalogue/${newItem.id}`, {
           method: 'PUT',
           headers,
-          body: JSON.stringify({ ...form, published: form.published }),
+          body: JSON.stringify({ ...form, audience: form.audience || null, published: form.published }),
         });
         if (!publishResponse.ok) throw new Error(await responseError(publishResponse, 'Photos uploaded, but the final publish settings could not be saved. The design remains a draft.'));
       }
@@ -321,6 +323,9 @@ export default function Admin() {
               <label style={{ display: 'grid', gap: 6, fontSize: 13 }}>Style
                 <select className="input" value={form.style} onChange={(event) => setForm({ ...form, style: event.target.value })}>{['Traditional', 'Modern', 'Bridal', 'Classic', 'Contemporary'].map((style) => <option key={style}>{style}</option>)}</select>
               </label>
+              <label style={{ display: 'grid', gap: 6, fontSize: 13 }}>Audience
+                <select className="input" value={form.audience} onChange={(event) => setForm({ ...form, audience: event.target.value as DesignForm['audience'] })}><option value="">Not specified</option><option value="Women">Women</option><option value="Men">Men</option><option value="Unisex">Unisex</option></select>
+              </label>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 12 }}>
               <label style={{ display: 'grid', gap: 6, fontSize: 13 }}>Subcategory
@@ -356,7 +361,7 @@ export default function Admin() {
             <h3 className="serif" style={{ fontWeight: 400, margin: '0 0 12px' }}>{group.metal} designs</h3>
             {group.items.map((item) => <article className="card" key={item.id} style={{ padding: 12, marginBottom: 10, display: 'flex', gap: 12, alignItems: 'center' }}>
               {item.images?.[0]?.url ? <img src={imageUrl(item.images[0].url)} alt={item.images[0].alt || item.name} style={{ width: 68, height: 78, objectFit: 'cover', background: '#eee8dc' }} /> : <div style={{ width: 68, height: 78, display: 'grid', placeItems: 'center', background: '#eee8dc', color: '#a77b35' }}><ImagePlus size={20} /></div>}
-              <div style={{ flex: 1, minWidth: 0 }}><b>{item.name}</b><small style={{ display: 'block', marginTop: 5, color: '#746d63' }}>{item.metal_type} · {item.design_code}</small><small style={{ display: 'block', marginTop: 4, color: '#746d63' }}>{item.weight_range || 'Weight not set'} · {item.published ? 'Published' : 'Draft'}</small>{item.sample && <small style={{ display: 'block', marginTop: 4, color: '#8b7653' }}>Illustrative starter sample · confirm details and images before use</small>}</div>
+              <div style={{ flex: 1, minWidth: 0 }}><b>{item.name}</b><small style={{ display: 'block', marginTop: 5, color: '#746d63' }}>{item.metal_type} · {item.design_code}{item.audience ? ` · ${item.audience}` : ''}</small><small style={{ display: 'block', marginTop: 4, color: '#746d63' }}>{item.weight_range || 'Weight not set'} · {item.published ? 'Published' : 'Draft'}</small>{item.sample && <small style={{ display: 'block', marginTop: 4, color: '#8b7653' }}>Illustrative starter sample · confirm details and images before use</small>}</div>
               <button type="button" aria-label={`Delete ${item.name}`} title="Move to deleted designs" onClick={() => void deleteDesign(item)} style={{ border: 0, background: 'transparent', color: '#8c4f3c', cursor: 'pointer', padding: 8 }}><Trash2 size={17} /></button>
             </article>)}
           </div>) : <div className="card" style={{ padding: 22, color: '#746d63' }}>{loading ? 'Loading saved designs…' : 'No saved designs yet. Add your first design using the form.'}</div>}

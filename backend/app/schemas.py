@@ -10,6 +10,7 @@ class DesignIn(BaseModel):
     subcategory: str = ''
     description: str = ''
     style: Literal['Traditional','Modern','Bridal','Classic','Contemporary'] = 'Traditional'
+    audience: Optional[Literal['Men','Women','Unisex']] = None
     weight_range: Optional[str] = None
     featured: bool = False
     published: bool = False
