@@ -123,6 +123,29 @@ export default async function Home() {
         </div>
       </section>
 
+      <section className="container" style={{ padding: '68px 0 24px' }}>
+        <div style={{ textAlign: 'center', maxWidth: 680, margin: '0 auto 30px' }}>
+          <div className="eyebrow">Care from our workshop</div>
+          <h2 className="serif" style={{ fontSize: 38, fontWeight: 400, margin: '12px 0' }}>Made, mended and made yours.</h2>
+          <p style={{ color: '#746d63', lineHeight: 1.8, margin: 0 }}>Our goldsmith can help with soldering, jewellery repairs, stone fitting, custom designs and more. Tell us what your piece needs and we’ll discuss the work with you.</p>
+        </div>
+        <div className="category-tiles" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))' }}>
+          {[
+            ['Soldering', 'Careful joining and small workshop fixes.'],
+            ['Jewellery repairs', 'Help restoring a favourite piece.'],
+            ['Stone fitting', 'Set or replace stones to suit your design.'],
+            ['Custom orders', 'Work with us to create a piece your way.'],
+          ].map(([title, detail]) => <div key={title} className="card" style={{ padding: 20 }}>
+            <h3 className="serif" style={{ fontSize: 22, fontWeight: 400, margin: '0 0 8px' }}>{title}</h3>
+            <p style={{ color: '#746d63', fontSize: 13, lineHeight: 1.7, margin: 0 }}>{detail}</p>
+          </div>)}
+        </div>
+        <div className="card" style={{ maxWidth: 860, margin: '22px auto 0', padding: '20px 24px', borderColor: '#d8c8ad', background: '#fbf8f1', textAlign: 'center' }}>
+          <div className="eyebrow">A clear promise with every custom order</div>
+          <p style={{ color: '#4f473b', lineHeight: 1.8, margin: '8px 0 0' }}>Every customised gold or silver order comes with its applicable item hallmark and purity details, so you can feel confident about what you receive.</p>
+        </div>
+      </section>
+
       <section className="container" style={{ padding: '68px 0', textAlign: 'center' }}>
         <div className="eyebrow">Your next favourite piece is a conversation away</div>
         <h2 className="serif" style={{ fontWeight: 400, fontSize: 37 }}>Have a design in mind?</h2>
