@@ -71,6 +71,16 @@ WORKSHOP_PHOTO_SAMPLES = [
     ('BJW-G-REF-120', 'Temple Emblem Thali', 'Thali', 'Traditional', 'bjw-gold-thali-04.webp'),
     ('BJW-G-REF-121', 'Flower Crest Thali', 'Thali', 'Traditional', 'bjw-gold-thali-05.webp'),
     ('BJW-G-REF-122', 'Beaded Temple Pair Thali', 'Thali', 'Traditional', 'bjw-gold-thali-06.webp'),
+    ('BJW-G-REF-123', 'Blue Eye Kids Kada', 'Kids Jewellery', 'Contemporary', 'bjw-kids-kada-01.webp'),
+    ('BJW-G-REF-124', 'Sunburst Bell Kids Kadas', 'Kids Jewellery', 'Traditional', 'bjw-kids-kada-02.webp'),
+    ('BJW-S-REF-125', 'Floral Silver Kids Kada', 'Kids Jewellery', 'Traditional', 'bjw-kids-kada-03.webp', 'Silver'),
+    ('BJW-G-REF-126', 'Medallion Kids Kada', 'Kids Jewellery', 'Classic', 'bjw-kids-kada-04.webp'),
+    ('BJW-G-REF-127', 'Turtle Motif Kids Kada', 'Kids Jewellery', 'Contemporary', 'bjw-kids-kada-05.webp'),
+    ('BJW-G-REF-128', 'Enamel Teardrop Kids Kada', 'Kids Jewellery', 'Traditional', 'bjw-kids-kada-06.webp'),
+    ('BJW-G-REF-129', 'Link Chain Kids Kada', 'Kids Jewellery', 'Contemporary', 'bjw-kids-kada-07.webp'),
+    ('BJW-S-REF-130', 'Engraved Silver Kids Kada', 'Kids Jewellery', 'Traditional', 'bjw-kids-kada-08.webp', 'Silver'),
+    ('BJW-S-REF-131', 'Multicolour Stone Kids Kadas', 'Kids Jewellery', 'Contemporary', 'bjw-kids-kada-09.webp', 'Silver'),
+    ('BJW-G-REF-132', 'Leaf Motif Open Kids Kada', 'Kids Jewellery', 'Traditional', 'bjw-kids-kada-10.webp'),
 ]
 
 def public(doc):
@@ -151,19 +161,20 @@ async def lifespan(app: FastAPI):
                 'updated_at': datetime.now(timezone.utc),
                 'deleted_at': None,
             })
-    for code, name, category_name, style, image_file in WORKSHOP_PHOTO_SAMPLES:
+    for code, name, category_name, style, image_file, *metal_args in WORKSHOP_PHOTO_SAMPLES:
         if await db.catalogue_items.find_one({'design_code': code}):
             continue
-        category = await db.categories.find_one({'name': category_name, 'metal_type': 'Gold', 'active': True})
+        metal = metal_args[0] if metal_args else 'Gold'
+        category = await db.categories.find_one({'name': category_name, 'metal_type': metal, 'active': True})
         if not category:
             continue
         now = datetime.now(timezone.utc)
         image_url = image_base + image_file
         await db.catalogue_items.insert_one({
             'name': name,
-            'slug': slugify(f'Gold-{name}-{code}'),
+            'slug': slugify(f'{metal}-{name}-{code}'),
             'design_code': code,
-            'metal_type': 'Gold',
+            'metal_type': metal,
             'category_id': str(category['_id']),
             'subcategory': '',
             'description': 'Photo supplied for design reference. Confirm metal, purity, exact weight, and availability with the workshop before ordering.',
