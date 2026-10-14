@@ -12,7 +12,7 @@ A mobile-first jewellery catalogue and enquiry site. This is a custom-order cata
 ## Run locally
 
 1. Copy `.env.example` to `.env`. Set a unique long `JWT_SECRET`, admin email and a 12+ character admin password, the WhatsApp number in international digits (no `+`), and the public site/API URLs.
-2. Start Docker Desktop, then run `docker compose up --build`.
+2. Start Docker Desktop, then run `./run.sh` (or `docker compose up --build`).
 3. Visit `http://localhost:3000` and the API docs at `http://localhost:8000/docs`.
 4. Sign in at `/admin`. Startup creates the initial admin only when bootstrap credentials are configured. It also initializes the standard categories and business settings.
 
