@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import { LoaderCircle, MessageCircle, Send } from 'lucide-react';
+import { LoaderCircle, Send } from 'lucide-react';
 
 const apiBase = process.env.NEXT_PUBLIC_API_URL || '/api';
 
@@ -10,13 +10,11 @@ type Props = { whatsapp: string };
 export default function ContactEnquiryForm({ whatsapp }: Props) {
   const [sending, setSending] = useState(false);
   const [notice, setNotice] = useState('');
-  const [fallbackUrl, setFallbackUrl] = useState('');
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSending(true);
-    setNotice('');
-    setFallbackUrl('');
+    setNotice('Opening WhatsApp with your enquiry details…');
 
     const form = event.currentTarget;
     const values = new FormData(form);
@@ -39,22 +37,15 @@ export default function ContactEnquiryForm({ whatsapp }: Props) {
     ].filter(Boolean).join('\n');
     const whatsappNumber = whatsapp.replace(/\D/g, '');
 
-    try {
-      const response = await fetch(`${apiBase}/enquiries`, {
+    // Save to the catalogue inbox when possible, without delaying the WhatsApp handoff.
+    void fetch(`${apiBase}/enquiries`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(details),
-      });
-      const result = await response.json();
-      if (!response.ok || !result.ok) throw new Error(result.detail || 'The enquiry could not be submitted.');
-      form.reset();
-      setNotice('Thank you. Your enquiry has been received, and our team will contact you.');
-    } catch {
-      setFallbackUrl(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappText)}`);
-      setNotice('Online submission is unavailable right now. You can send your details to us through WhatsApp instead.');
-    } finally {
-      setSending(false);
-    }
+      keepalive: true,
+    }).catch(() => {});
+
+    window.location.assign(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappText)}`);
   }
 
   return (
@@ -84,11 +75,10 @@ export default function ContactEnquiryForm({ whatsapp }: Props) {
         <span>I agree that Balaji Jewellery Works may use these details to reply to my enquiry.</span>
       </label>
       <button className="btn" type="submit" disabled={sending}>
-        {sending ? <><LoaderCircle size={16} /> Sending…</> : <><Send size={15} /> Send enquiry</>}
+      {sending ? <><LoaderCircle size={16} /> Opening WhatsApp…</> : <><Send size={15} /> Send enquiry</>}
       </button>
-      <p role="status" aria-live="polite" style={{ minHeight: 18, margin: 0, fontSize: 13, color: fallbackUrl ? '#8c4f3c' : '#48634a' }}>{notice}</p>
-      {fallbackUrl && <a className="btn btn-light" href={fallbackUrl} target="_blank" rel="noreferrer"><MessageCircle size={16} /> Continue in WhatsApp</a>}
-      <small style={{ color: '#746d63', lineHeight: 1.6 }}>Your enquiry is visible to catalogue admins. If online submission is unavailable, WhatsApp opens with your message for you to review and send.</small>
+      <p role="status" aria-live="polite" style={{ minHeight: 18, margin: 0, fontSize: 13, color: '#48634a' }}>{notice}</p>
+      <small style={{ color: '#746d63', lineHeight: 1.6 }}>WhatsApp will open with your details filled in. Review the message and tap Send in WhatsApp to submit your enquiry. We’ll also try to save it in our catalogue inbox.</small>
     </form>
   );
 }
