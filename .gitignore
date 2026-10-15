@@ -12,6 +12,7 @@
 
 # Dependencies, build output, and caches
 **/node_modules/
+*.tsbuildinfo
 **/.next/
 **/.open-next/
 **/.wrangler/
